@@ -3,7 +3,7 @@
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
-unsigned int loadTexture(char const* path, const bool flip);
+std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip = true, const bool gamma = false);
 static bool open = true;
 
 namespace Rendering {
@@ -125,6 +125,19 @@ void Renderer::GatherImGui() {
         return;
     }
 
+    auto get_texture_type_repr = [](unsigned int T) -> std::string {
+        switch (T) {
+        case GL_RED:
+            return "GL_RED";
+        case GL_RGB:
+            return "GL_RGB";
+        case GL_RGBA:
+            return "GL_RGBA";
+        default:
+            return std::to_string(T);
+        }
+    };
+
     if (ImGui::CollapsingHeader("Textures", &open)) {
         for (const auto& [name, tex] : textures) {
             ImGui::Image((ImTextureID)tex.id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
@@ -132,8 +145,9 @@ void Renderer::GatherImGui() {
 
             ImGui::BeginGroup();
             ImGui::Text("Texture: <%d> %s", tex.id, name.c_str());
-            ImGui::Text("Texture type: %s", tex.type.c_str());
-            ImGui::Text("Texture path: %s", tex.path.c_str());
+            ImGui::Text("Type: %s", get_texture_type_repr(tex.gl_type));
+            ImGui::Text("Usage: %s", tex.type.c_str());
+            ImGui::Text("Path: %s", tex.path.c_str());
             ImGui::EndGroup();
             ImGui::Separator();
         }
@@ -197,6 +211,7 @@ void Renderer::GatherImGui() {
         ImGui::DragFloat("Light Constant", &settings.light_constant, 0.1, 1.0, 100.f);
         ImGui::DragFloat("Light Linear", &settings.light_linear, 0.05, 0.01, 100.f);
         ImGui::DragFloat("Light Quadratic", &settings.light_quadratic, 0.1, 1.0, 100.f);
+        ImGui::DragFloat("Light Intensity", &settings.intensity, 0.2, 0.2, 20.f);
         ImGui::DragFloat("Model Frustum Radius", &settings.models_sphere_radius, 0.05, 0.01, 5.f);
         ImGui::Checkbox("Wireframe", &settings.wireframe);
     }
@@ -229,14 +244,14 @@ std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_n
 }
 
 
-Texture* Renderer::NewTexture(const char* file_path, std::string name, std::string type) {
-    unsigned int tex_id = loadTexture(file_path, true);
+Texture* Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool gamma) {
+    auto [tex_id, tex_type] = m_loadTexture(file_path, true, gamma);
 
     auto ret = textures.insert(
         { 
         name, 
             {
-            tex_id, type, file_path
+            tex_id, tex_type, type, file_path
             }
         }
     );
@@ -244,24 +259,24 @@ Texture* Renderer::NewTexture(const char* file_path, std::string name, std::stri
 }
 
 
-unsigned int loadTexture(char const* path, const bool flip = true)
+std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip, const bool gamma)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
     stbi_set_flip_vertically_on_load(flip);
 
+    GLenum format;
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data)
     {
-        GLenum format;
         if (nrComponents == 1)
             format = GL_RED;
         else if (nrComponents == 3)
-            format = GL_RGB;
+            format = gamma ? GL_SRGB : GL_RGB;
         else if (nrComponents == 4)
-            format = GL_RGBA;
+            format = gamma ? GL_SRGB_ALPHA : GL_RGBA;
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
@@ -280,7 +295,7 @@ unsigned int loadTexture(char const* path, const bool flip = true)
         stbi_image_free(data);
     }
     stbi_set_flip_vertically_on_load(true);
-    return textureID;
+    return { textureID, format };
 }
 
 

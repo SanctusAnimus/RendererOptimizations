@@ -27,7 +27,7 @@ private:
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     InstancedMesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma = false);
 };
 
 #endif // !INSTANCEDMODEL_CLASS_DECL

@@ -186,7 +186,7 @@ InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
 }
 
 
-std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma)
 {
     Renderer* renderer = &Renderer::instance();
     std::vector<Texture> textures;
@@ -199,7 +199,7 @@ std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTex
         Texture* texture = renderer->GetTexture(path);
         if (texture == nullptr) {
             texture = renderer->NewTexture(
-                (directory + '/' + path).c_str(), path, typeName
+                (directory + '/' + path).c_str(), path, typeName, gamma
             );
             std::cout << "Loaded texture " << typeName << " with path " << texture->path << std::endl;
         }

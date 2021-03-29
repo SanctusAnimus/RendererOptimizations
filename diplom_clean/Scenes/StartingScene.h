@@ -32,15 +32,24 @@ private:
 	unsigned int gPosition, gNormal, gAlbedoSpec;
 	unsigned int ssbo;
 
+	unsigned int hdrFBO;
+	unsigned int colorBuffers[2];
+	unsigned int pingpongFBO[2];
+	unsigned int pingpongColorbuffers[2];
+
 	Shader* geometry_pass_shader;
 	Shader* instanced_gp_shader;
 	Shader* lighting_pass_shader;
 	Shader* light_box_shader;
 
+	Shader* blur_shader;
+	Shader* final_shader;
+
 	Model backpack;
 	Model cube;
 
-	const int LIGHT_COUNT_MAX = 256;
+	float spread = 20.f;
+	const int LIGHT_COUNT_MAX = 64;
 };
 
 #endif // !STARTINGSCENE_CLASS_DECL

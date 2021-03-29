@@ -26,10 +26,12 @@ namespace Rendering {
 
 		float light_constant = 1.0;
 		float light_linear = 0.7;
-		float light_quadratic = 1.4;
+		float light_quadratic = 2.1;
+		float intensity = 1.0;
 
 		bool wireframe = false;
 		bool gamma_correction = false;
+
 
 		float models_sphere_radius = 1.0;
 	};
@@ -54,7 +56,7 @@ public:
 	Shader* NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name);
 
 
-	Texture* NewTexture(const char* file_path, std::string name, std::string type);
+	Texture* NewTexture(const char* file_path, std::string name, std::string type, const bool gamma = false);
 
 	std::shared_ptr<Camera::BaseCamera> NewCamera(glm::vec3 coords, std::string camera_name, Camera::Camera_Type cam_type);
 

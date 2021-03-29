@@ -90,9 +90,6 @@
     <ClCompile Include="Scenes\StartingScene.cpp">
       <Filter>Renderer\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Scenes\BloomScene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Model\InstancedModel.cpp">
       <Filter>Renderer\Model</Filter>
     </ClCompile>
@@ -163,9 +160,6 @@
     </ClInclude>
     <ClInclude Include="Scenes\StartingScene.h">
       <Filter>Renderer\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scenes\BloomScene.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Model\InstancedModel.h">
       <Filter>Renderer\Model</Filter>

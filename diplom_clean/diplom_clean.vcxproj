@@ -153,7 +153,6 @@
     <ClCompile Include="Scenes\BaseScene.cpp" />
     <ClCompile Include="Renderer\Mesh\InstancedMesh.cpp" />
     <ClCompile Include="Renderer\Model\InstancedModel.cpp" />
-    <ClCompile Include="Scenes\BloomScene.cpp" />
     <ClCompile Include="Renderer\Cube\Cube.cpp" />
     <ClCompile Include="Renderer\Camera\FlyCamera.cpp" />
     <ClCompile Include="glad.c" />
@@ -177,7 +176,6 @@
     <ClInclude Include="Scenes\BaseScene.h" />
     <ClInclude Include="Renderer\Mesh\InstancedMesh.h" />
     <ClInclude Include="Renderer\Model\InstancedModel.h" />
-    <ClInclude Include="Scenes\BloomScene.h" />
     <ClInclude Include="Renderer\Cube\Cube.h" />
     <ClInclude Include="Renderer\Camera\FlyCamera.h" />
     <ClInclude Include="ImGui\ImGuiLayer.h" />
