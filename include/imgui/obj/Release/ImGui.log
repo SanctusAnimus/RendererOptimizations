@@ -1,0 +1,7 @@
+﻿  Using triplet "x64-windows" from "D:\Apps\vcpkg\vcpkg\installed\x64-windows\"
+  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_widgets.cpp
+  Generating Code...
+  ImGui.vcxproj -> e:\vs_projects\DIPLOM\graphics_7\graphics_2\vendor\imgui\bin\Release\ImGui.lib

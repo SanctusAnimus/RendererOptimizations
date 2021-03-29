@@ -1,0 +1,8 @@
+C:\Users\den_k\source\repos\graphics_2\graphics_2\vendor\imgui\bin\Debug\ImGui.pdb
+C:\Users\den_k\source\repos\graphics_2\graphics_2\vendor\imgui\obj\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_3\graphics_2\vendor\imgui\bin\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_3\graphics_2\vendor\imgui\obj\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_4\graphics_2\vendor\imgui\bin\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_4\graphics_2\vendor\imgui\obj\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_7\graphics_2\vendor\imgui\bin\Debug\ImGui.pdb
+c:\Users\den_k\source\repos\graphics_7\graphics_2\vendor\imgui\obj\Debug\ImGui.pdb

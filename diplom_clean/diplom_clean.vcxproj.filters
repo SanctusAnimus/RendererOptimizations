@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Const">
+      <UniqueIdentifier>{69752810-9098-4379-9c93-b802f5897af1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{c032d5ca-0e5c-4179-acb2-756a6e5cc3d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{f79f3c63-19b8-4976-a50e-f45bab2b6617}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Camera">
+      <UniqueIdentifier>{a84c694f-71e1-4870-8452-02f1cd15caf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Model">
+      <UniqueIdentifier>{9e537225-910a-474a-b731-3a87a7a6471c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Scene">
+      <UniqueIdentifier>{efcf271a-1993-4623-a3d9-c1bb02a6d6c1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Const</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Quad\Quad.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\BaseCamera.cpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\FlyCamera.cpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\ArcballCamera.cpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Cube\Cube.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Model\Model.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Mesh\Mesh.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Quad\InstancedQuad.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderable.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\ImGuiBuild.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\ImGuiLayer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\BaseScene.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LightSource.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\StartingScene.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\BloomScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Model\InstancedModel.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Mesh\InstancedMesh.cpp">
+      <Filter>Renderer\Model</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Renderer\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Model\common.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Quad\Quad.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderable.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera\BaseCamera.h">
+      <Filter>Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera\FlyCamera.h">
+      <Filter>Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera\ArcballCamera.h">
+      <Filter>Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Cube\Cube.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Model\Model.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Mesh\Mesh.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Quad\InstancedQuad.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\ImGuiLayer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\BaseScene.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LightData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LightSource.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\StartingScene.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\BloomScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Model\InstancedModel.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Mesh\InstancedMesh.h">
+      <Filter>Renderer\Model</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assimp-vc142-mt.dll" />
+    <None Include="Shaders\Basic\fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\light_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\light_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\geometry_instanced_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\geometry_pass_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\geometry_pass_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Screen\hdr_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Screen\hrd_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\light_box_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\light_box_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\lighting_pass_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\lighting_pass_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Model\model_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Model\model_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Screen\screen_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Screen\screen_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\single_color_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\skybox_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\skybox_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tesselation_evaluation.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tessellation_control.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tessellation_evaluation.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tessellation_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tessellation_geometry.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Tessellation\tessellation_vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Basic\single_color_fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Deferred\geometry_pass_geometry.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="old_main_part.txt" />
+  </ItemGroup>
+</Project>
