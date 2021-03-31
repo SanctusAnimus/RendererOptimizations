@@ -31,7 +31,7 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
 
     Renderer* renderer = &Renderer::instance();
 
-    float radius = renderer->settings.models_sphere_radius;
+    float radius = renderer->m_Settings.models_sphere_radius;
 
     glm::mat4 mvp = projection * view * glm::mat4(1.f);
 
@@ -44,7 +44,7 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
         }
     }
     int visible_count = visible_positions.size();
-    renderer->visible_models = visible_count;
+    renderer->m_VisibleModels = visible_count;
 
     for (auto& mesh : meshes) {
         mesh.UpdateModels(&visible_positions[0], visible_count);
@@ -106,7 +106,7 @@ InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
     // data to fill
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    std::vector<Texture> m_Textures;
 
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -170,26 +170,26 @@ InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
 
     // 1. diffuse maps
     std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-    textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+    m_Textures.insert(m_Textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. specular maps
     std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    m_Textures.insert(m_Textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+    m_Textures.insert(m_Textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+    m_Textures.insert(m_Textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    return InstancedMesh(vertices, indices, textures);
+    return InstancedMesh(vertices, indices, m_Textures);
 }
 
 
 std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma)
 {
     Renderer* renderer = &Renderer::instance();
-    std::vector<Texture> textures;
+    std::vector<Texture> m_Textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
@@ -203,7 +203,7 @@ std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTex
             );
             std::cout << "Loaded texture " << typeName << " with path " << texture->path << std::endl;
         }
-        textures.push_back(*texture);
+        m_Textures.push_back(*texture);
     }
-    return textures;
+    return m_Textures;
 }

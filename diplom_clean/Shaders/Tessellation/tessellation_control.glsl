@@ -1,32 +1,18 @@
-#version 430
+#version 460 core
 
-layout(vertices = 4) out;
+uniform int inner;
+uniform int outer;
 
-in vec3 vPosition[];
-in vec3 vNormal[];
-in vec2 vTexCoord[];
-out vec3 tcPosition[];
-out vec3 tcNormal[];
-out vec2 tcTexCoord[];
+layout(vertices = 16) out;
 
-uniform float level;
+void main(void)
+{
+    gl_TessLevelInner [0] = inner;
+    gl_TessLevelInner [1] = inner;
+    gl_TessLevelOuter [0] = outer;
+    gl_TessLevelOuter [1] = outer;
+    gl_TessLevelOuter [2] = outer;
+    gl_TessLevelOuter [3] = outer;
 
-void main(){
-
-    float inTess  = level / 2.0;
-    float outTess = level;
-
-    tcPosition[gl_InvocationID] = vPosition[gl_InvocationID];
-    tcNormal[gl_InvocationID]   = vNormal[gl_InvocationID];
-    tcTexCoord[gl_InvocationID] = vTexCoord[gl_InvocationID];
-
-    if(gl_InvocationID == 0) {
-        gl_TessLevelInner[0] = inTess;
-        gl_TessLevelInner[1] = inTess;
-
-        gl_TessLevelOuter[0] = outTess;
-        gl_TessLevelOuter[1] = outTess;
-        gl_TessLevelOuter[2] = outTess;
-        gl_TessLevelOuter[3] = outTess;
-    }
+    gl_out [gl_InvocationID].gl_Position = gl_in [gl_InvocationID].gl_Position;
 }

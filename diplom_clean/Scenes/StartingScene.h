@@ -49,7 +49,11 @@ private:
 	Model cube;
 
 	float spread = 20.f;
-	const int LIGHT_COUNT_MAX = 64;
+	const int LIGHT_COUNT_MAX = 256;
+
+	int count = 1;
+
+	bool display_only_visible = true;
 };
 
 #endif // !STARTINGSCENE_CLASS_DECL

@@ -1,10 +1,10 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures)
 {
     this->vertices = vertices;
     this->indices = indices;
-    this->textures = textures;
+    this->m_Textures = m_Textures;
 
     setupMesh();
 }
@@ -49,12 +49,12 @@ void Mesh::Render(Shader& shader)
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
-    for (unsigned int i = 0; i < textures.size(); i++)
+    for (unsigned int i = 0; i < m_Textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = textures[i].type;
+        std::string name = m_Textures[i].type;
         if (name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
         else if (name == "texture_specular")
@@ -63,7 +63,7 @@ void Mesh::Render(Shader& shader)
             number = std::to_string(normalNr++);
 
         shader.setInt((name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);
 
@@ -72,7 +72,7 @@ void Mesh::Render(Shader& shader)
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    for (unsigned int i = 0; i < textures.size(); i++) {
+    for (unsigned int i = 0; i < m_Textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }

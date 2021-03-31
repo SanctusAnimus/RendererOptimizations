@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Scenes\Lab2Scene.cpp" />
     <ClCompile Include="Renderer\Camera\ArcballCamera.cpp" />
     <ClCompile Include="Renderer\Camera\BaseCamera.cpp" />
     <ClCompile Include="Scenes\BaseScene.cpp" />
@@ -167,10 +168,13 @@
     <ClCompile Include="Renderer\Renderable.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Shader.cpp" />
+    <ClCompile Include="Scenes\Lab1Scene.cpp" />
     <ClCompile Include="Scenes\StartingScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="ImGui\ImGuiLogger.h" />
+    <ClInclude Include="Scenes\Lab2Scene.h" />
     <ClInclude Include="Renderer\Camera\ArcballCamera.h" />
     <ClInclude Include="Renderer\Camera\BaseCamera.h" />
     <ClInclude Include="Scenes\BaseScene.h" />
@@ -188,6 +192,7 @@
     <ClInclude Include="Renderer\Renderable.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Shader.h" />
+    <ClInclude Include="Scenes\Lab1Scene.h" />
     <ClInclude Include="Shaders\Model\common.h" />
     <ClInclude Include="Scenes\StartingScene.h" />
     <ClInclude Include="stb_image.h" />
@@ -199,6 +204,10 @@
     <None Include="Shaders\Basic\fragment.glsl" />
     <None Include="Shaders\Basic\light_fragment.glsl" />
     <None Include="Shaders\Basic\light_vertex.glsl" />
+    <None Include="Shaders\Deferred\bloom_final_fragment.glsl" />
+    <None Include="Shaders\Deferred\bloom_final_vertex.glsl" />
+    <None Include="Shaders\Deferred\blur_fragment.glsl" />
+    <None Include="Shaders\Deferred\blur_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_instanced_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_geometry.glsl" />

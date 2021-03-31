@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "../Renderer.h"
+#include "../../ImGui/ImGuiLogger.h"
 
 static void GLClearErrors() {
     while (glGetError() != GL_NO_ERROR);
@@ -155,7 +156,7 @@ void InstancedQuad::Add(glm::mat4 position) {
     glBufferData(GL_ARRAY_BUFFER, models.size() * 64, &models[0], GL_DYNAMIC_DRAW);
     GLGetErrors();
 
-    std::cout << "rebound array buffer object" << std::endl;
+    Logger::instance().AddLog("[InstancedQuad] Added new instance of quad\n");
 }
 
 void InstancedQuad::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection) {

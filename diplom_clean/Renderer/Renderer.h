@@ -77,21 +77,21 @@ public:
 
 	void SetActiveCamera(std::string camera_name);
 
-	std::shared_ptr<Camera::BaseCamera> current_camera;
-	Camera::Camera_Type current_camera_type;
-	float frame_time = 0.1f;
-	Rendering::RenderSettings settings;
-	unsigned int visible_lights = 0;
-	unsigned int visible_models = 0;
+	std::shared_ptr<Camera::BaseCamera> m_CurrentCamera;
+	Camera::Camera_Type m_CurrentCameraType;
+	float m_FrameTime = 0.1f;
+	Rendering::RenderSettings m_Settings;
+	unsigned int m_VisibleLights = 0;
+	unsigned int m_VisibleModels = 0;
 private:
-	std::vector<std::shared_ptr<Renderable>> objects;
+	std::vector<std::shared_ptr<Renderable>> m_Objects;
 
-	std::map<std::string, std::shared_ptr<Camera::BaseCamera>> cameras;
-	std::map<std::string, std::shared_ptr<InstancedQuad>> instanced_quads;
-	std::map<std::string, std::shared_ptr<InstancedModel>> instanced_models;
+	std::map<std::string, std::shared_ptr<Camera::BaseCamera>> m_Cameras;
+	std::map<std::string, std::shared_ptr<InstancedQuad>> m_InstancedQuad;
+	std::map<std::string, std::shared_ptr<InstancedModel>> m_InstancedModels;
 
-	std::map<std::string, Shader> shaders;
-	std::map<std::string, Texture> textures;
+	std::map<std::string, Shader> m_Shaders;
+	std::map<std::string, Texture> m_Textures;
 
 
 	unsigned int m_SimpleQuadVAO = 0;

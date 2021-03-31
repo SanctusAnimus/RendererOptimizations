@@ -8,6 +8,9 @@
 #include "stb_image.h"
 
 #include "Scenes/StartingScene.h"
+#include "Scenes/Lab1Scene.h"
+#include "Scenes/Lab2Scene.h"
+#include "ImGui/ImGuiLogger.h"
 
 Application::Application() {
 
@@ -39,7 +42,7 @@ void Application::Init() {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
     m_Renderer = &Renderer::instance();
     imgui_layer = std::shared_ptr<ImGuiLayer>(new ImGuiLayer(m_Window, "core_layer"));
@@ -66,7 +69,7 @@ void Application::Init() {
 }
 
 void Application::SetupCallbacks() {
-    std::cout << "Setuping callbacks..." << std::endl;
+    Logger::instance().AddLog("[Application] Callbacks setup started...\n");
     glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->framebuffer_size_callback(window, width, height);
@@ -83,22 +86,24 @@ void Application::SetupCallbacks() {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->scroll_callback(window, xoffset, yoffset);
     });
-    std::cout << "...Done" << std::endl;
+    Logger::instance().AddLog("[Application] Callbacks setup finished.\n");
 }
 
 void Application::SetupScene() {
-    std::cout << "Setuping scene..." << std::endl;
-    current_scene = std::shared_ptr<BaseScene>(new StartingScene());
+    Logger::instance().AddLog("[Application] Scene setup started...\n");
+    // current_scene = std::shared_ptr<BaseScene>(new StartingScene());
+    current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
     current_scene->Setup();
-    std::cout << "...Done" << std::endl;
+    Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
 
 void Application::Run() {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    m_Renderer->frame_time = deltaTime;
+    m_Renderer->m_FrameTime = deltaTime;
 
+    glfwPollEvents();
     processInput();
 
     imgui_layer->Begin();
@@ -108,7 +113,6 @@ void Application::Run() {
     imgui_layer->End(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
 
     glfwSwapBuffers(m_Window);
-    glfwPollEvents();
 }
 
 
@@ -125,32 +129,33 @@ void Application::processInput()
         glfwSetWindowShouldClose(m_Window, true);
 
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-        m_Renderer->current_camera->ProcessKeyboard(Camera::FORWARD, m_Renderer->frame_time);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::FORWARD, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-        m_Renderer->current_camera->ProcessKeyboard(Camera::BACKWARD, m_Renderer->frame_time);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::BACKWARD, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-        m_Renderer->current_camera->ProcessKeyboard(Camera::LEFT, m_Renderer->frame_time);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::LEFT, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-        m_Renderer->current_camera->ProcessKeyboard(Camera::RIGHT, m_Renderer->frame_time);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::RIGHT, m_Renderer->m_FrameTime);
 
     if (glfwGetKey(m_Window, GLFW_KEY_3) == GLFW_PRESS) {
-        if (m_Renderer->current_camera_type != Camera::Camera_Type::ARCBALL) {
-            std::cout << "switching to arcball camera" << std::endl;
-            glm::vec3 position = m_Renderer->current_camera->m_Position;
+        if (m_Renderer->m_CurrentCameraType != Camera::Camera_Type::ARCBALL) {
+            glm::vec3 position = m_Renderer->m_CurrentCamera->m_Position;
             m_Renderer->SetActiveCamera("arcball_camera");
-            m_Renderer->current_camera->m_Position = position;
-            m_Renderer->current_camera->Update();
+            m_Renderer->m_CurrentCamera->m_Position = position;
+            m_Renderer->m_CurrentCamera->Update();
             glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+            Logger::instance().AddLog("[Input] Switching camera to arcball type\n");
         }
     }
     if (glfwGetKey(m_Window, GLFW_KEY_4) == GLFW_PRESS) {
-        if (m_Renderer->current_camera_type != Camera::Camera_Type::FLYCAM) {
-            std::cout << "switching to fly camera" << std::endl;
-            glm::vec3 position = m_Renderer->current_camera->m_Position;
+        if (m_Renderer->m_CurrentCameraType != Camera::Camera_Type::FLYCAM) {
+            glm::vec3 position = m_Renderer->m_CurrentCamera->m_Position;
             m_Renderer->SetActiveCamera("fly_camera");
-            m_Renderer->current_camera->m_Position = position;
-            m_Renderer->current_camera->Update();
+            m_Renderer->m_CurrentCamera->m_Position = position;
+            m_Renderer->m_CurrentCamera->Update();
             glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            Logger::instance().AddLog("[Input] Switching camera to flying type\n");
         }
     }
 }
@@ -171,9 +176,9 @@ void Application::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     lastY = ypos;
 
     if ((mouse_hold
-        || Renderer::instance().current_camera_type == Camera::Camera_Type::FLYCAM)
+        || Renderer::instance().m_CurrentCameraType == Camera::Camera_Type::FLYCAM)
         && !ImGui::IsAnyItemActive()) {
-        Renderer::instance().current_camera->ProcessMouseMovement(xoffset, yoffset);
+        Renderer::instance().m_CurrentCamera->ProcessMouseMovement(xoffset, yoffset);
     }
 }
 
@@ -186,6 +191,10 @@ void Application::mouse_button_callback(GLFWwindow* window, int button, int acti
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseWheelH += (float)xoffset;
+    io.MouseWheel += (float)yoffset;
+
     if (ImGui::IsAnyWindowHovered()) return;
-    Renderer::instance().current_camera->ProcessMouseScroll(yoffset);
+    Renderer::instance().m_CurrentCamera->ProcessMouseScroll(yoffset);
 }

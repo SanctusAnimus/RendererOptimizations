@@ -12,4 +12,8 @@ struct Vertex {
     glm::vec3 Bitangent;
 };
 
+struct BasicVertex {
+    glm::vec3 m_Position;
+};
+
 #endif // !VERTEX_STRUCT_DECL

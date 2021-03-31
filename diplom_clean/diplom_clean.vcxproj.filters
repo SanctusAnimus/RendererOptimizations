@@ -96,6 +96,12 @@
     <ClCompile Include="Renderer\Mesh\InstancedMesh.cpp">
       <Filter>Renderer\Model</Filter>
     </ClCompile>
+    <ClCompile Include="Scenes\Lab1Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\Lab2Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer\Shader.h">
@@ -166,6 +172,15 @@
     </ClInclude>
     <ClInclude Include="Renderer\Mesh\InstancedMesh.h">
       <Filter>Renderer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\ImGuiLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\Lab1Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\Lab2Scene.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +267,10 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Deferred\geometry_pass_geometry.glsl" />
+    <None Include="Shaders\Deferred\blur_vertex.glsl" />
+    <None Include="Shaders\Deferred\blur_fragment.glsl" />
+    <None Include="Shaders\Deferred\bloom_final_vertex.glsl" />
+    <None Include="Shaders\Deferred\bloom_final_fragment.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="old_main_part.txt" />

@@ -1,10 +1,10 @@
 #include "InstancedMesh.h"
 
-InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures)
 {
     this->vertices = vertices;
     this->indices = indices;
-    this->textures = textures;
+    this->m_Textures = m_Textures;
 
     setupMesh();
 }
@@ -73,12 +73,12 @@ void InstancedMesh::Bind(Shader* shader) {
     unsigned int normalNr = 1;
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
-    for (unsigned int i = 0; i < textures.size(); i++)
+    for (unsigned int i = 0; i < m_Textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = textures[i].type;
+        std::string name = m_Textures[i].type;
         if (name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
         else if (name == "texture_specular")
@@ -87,14 +87,14 @@ void InstancedMesh::Bind(Shader* shader) {
             number = std::to_string(normalNr++);
 
         shader->setInt((name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
     }
  
 }
 
 void InstancedMesh::Unbind() {
     glBindVertexArray(0);
-    for (unsigned int i = 0; i < textures.size(); i++) {
+    for (unsigned int i = 0; i < m_Textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
     }

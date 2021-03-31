@@ -1,14 +1,38 @@
 #include "StartingScene.h"
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include <imgui/imgui.h>
 #include <random>
 
 #include "../Renderer/Renderer.h"
+#include "../ImGui/ImGuiLogger.h"
+
+
+static void GLClearErrors() {
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static void GLGetErrors() {
+    while (GLenum error = glGetError()) {
+
+        const char* description;
+        int code = glfwGetError(&description);
+        if (description != nullptr) {
+            std::cout << "[OpenGL] error " << error << " " << description << std::endl;
+        }
+        else {
+            std::cout << "[OpenGL] error " << error << " with empty message" << std::endl;
+        }
+
+    }
+}
 
 
 void StartingScene::Setup() {
-    std::cout << "Scene setup called" << std::endl;
+    Logger* logger = &Logger::instance();
+    // std::cout << "Scene setup called" << std::endl;
+    logger->AddLog("[Scene] setup started...\n");
     Renderer* renderer = &Renderer::instance();
 
     auto arcball_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "arcball_camera", Camera::Camera_Type::ARCBALL);
@@ -41,7 +65,6 @@ void StartingScene::Setup() {
         "Shaders/Deferred/lighting_pass_vertex.glsl", "Shaders/Deferred/lighting_pass_fragment.glsl", "l_pass");
     light_box_shader = renderer->NewShader(
         "Shaders/Deferred/light_box_vertex.glsl", "Shaders/Deferred/light_box_fragment.glsl", "l_box");
-
     blur_shader = renderer->NewShader(
         "Shaders/Deferred/blur_vertex.glsl", "Shaders/Deferred/blur_fragment.glsl", "blur_shader");
     final_shader = renderer->NewShader(
@@ -56,35 +79,29 @@ void StartingScene::Setup() {
     quad->SetNormalMap("brickwall_normal");
     // quad->SetSpecularMap("brickwall_specular");
     quad->SetRotation(-90, { 1.f, 0.f, 0.f });
-    quad->SetScale({ 20.f, 20.f, 20.0 });
+    quad->SetScale({ 100.f, 100.f, 100.0 });
     quad->SetTransform({ 0.f, -1.f, 0.f });
 
     auto instanced_backpack = renderer->NewInstancedModel("Models/backpack/backpack.obj", "instanced_g_pass", "instanced_backpack");
 
-    int count = 2;
-    for (int i = -count; i < count; i++) {
-        for (int j = -count; j < count; j++) {
-            glm::vec3 translate(i * 3.f, 1.f, j * 3.f);
+    
+    for (int i = -count; i <= count; i++) {
+        for (int j = -count; j <= count; j++) {
+            glm::vec3 translate(i * 5.f, 1.f, j * 5.f);
             glm::mat4 model(1.f);
             model = glm::mat4(1.0f);
             model = glm::translate(model, translate);
-            model = glm::scale(model, glm::vec3(0.5f));
+            model = glm::scale(model, glm::vec3(0.7f));
 
             instanced_backpack->Add(model);
         }
     }
-
-
-    // configure g-buffer framebuffer
-    // ------------------------------
     
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     
     int SCR_WIDTH = Rendering::SCREEN_WIDTH;
     int SCR_HEIGHT = Rendering::SCREEN_HEIGHT;
-
-    
 
     // position color buffer
     glGenTextures(1, &gPosition);
@@ -122,7 +139,9 @@ void StartingScene::Setup() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
    
     std::mt19937 gen;
-    std::uniform_real_distribution<> urd(0.7, 1);
+    std::uniform_real_distribution<> urd_red(0.5, 1.f);
+    std::uniform_real_distribution<> urd_green(0.2, 0.8);
+    std::uniform_real_distribution<> urd_blue(0.1, 0.5);
 
     for (unsigned int i = 0; i < LIGHT_COUNT_MAX; i++)
     {
@@ -134,16 +153,16 @@ void StartingScene::Setup() {
         m_light_data.Position = glm::vec4(xPos, yPos, zPos, 1.0);
         // lightPositions.push_back(glm::vec3(xPos, yPos, zPos));
         // also calculate random color
-        float rColor = urd(gen);
-        float gColor = urd(gen);
-        float bColor = urd(gen);
+        float rColor = urd_red(gen);
+        float gColor = urd_green(gen);
+        float bColor = urd_blue(gen);
         // lightColors.push_back(glm::vec3(rColor, gColor, bColor));
         m_light_data.Color = glm::vec4(rColor, gColor, bColor, 1.0);
 
-        const float constant = renderer->settings.light_constant;
-        const float linear = renderer->settings.light_linear;
-        const float quadratic = renderer->settings.light_quadratic;
-        const float intensity = renderer->settings.intensity;
+        const float constant = renderer->m_Settings.light_constant;
+        const float linear = renderer->m_Settings.light_linear;
+        const float quadratic = renderer->m_Settings.light_quadratic;
+        const float intensity = renderer->m_Settings.intensity;
         m_light_data.Linear = linear;
         m_light_data.Quadratic = quadratic;
         const float maxBrightness = std::fmaxf(std::fmaxf(m_light_data.Color.r, m_light_data.Color.g), m_light_data.Color.b);
@@ -164,8 +183,6 @@ void StartingScene::Setup() {
     lighting_pass_shader->setInt("gAlbedoSpec", 2);
 
     std::cout << "...Done" << std::endl;
-
-
 
     glGenFramebuffers(1, &hdrFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
@@ -221,25 +238,28 @@ void StartingScene::Setup() {
     final_shader->use();
     final_shader->setInt("scene", 0);
     final_shader->setInt("bloomBlur", 1);
+
+    logger->AddLog("[Scene] setup finished.\n");
 }
 
 void StartingScene::Render() {
     Renderer* renderer = &Renderer::instance();
+    Logger* logger = &Logger::instance();
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    // GLClearErrors();
     // 1. geometry pass: render scene's geometry/color data into gbuffer
     // -----------------------------------------------------------------
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 projection = glm::perspective(
-        glm::radians(renderer->current_camera->m_Zoom),
+        glm::radians(renderer->m_CurrentCamera->m_Zoom),
         (float)Rendering::SCREEN_WIDTH / (float)Rendering::SCREEN_HEIGHT,
         0.1f, 100.0f
     );
-    glm::mat4 view = renderer->current_camera->GetViewMatrix();
+    glm::mat4 view = renderer->m_CurrentCamera->GetViewMatrix();
     glm::mat4 model = glm::mat4(1.0f);
 
     glm::mat4 mvp = projection * view * model;
@@ -252,25 +272,12 @@ void StartingScene::Render() {
         }
     }
 
-    renderer->visible_lights = temporary_light_data.size();
+    renderer->m_VisibleLights = temporary_light_data.size();
 
     geometry_pass_shader->use();
     geometry_pass_shader->setMat4("projection", projection);
     geometry_pass_shader->setMat4("view", view);
-    glPolygonMode(GL_FRONT_AND_BACK, renderer->settings.wireframe ? GL_LINE : GL_FILL);
-    /*
-    for (unsigned int i = 0; i < objectPositions.size(); i++)
-    {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, objectPositions[i]);
-        model = glm::scale(model, glm::vec3(0.5f));
-        geometry_pass_shader->setMat4("model", model);
-        model = glm::inverse(model);
-        model = glm::transpose(model);
-        geometry_pass_shader->setMat4("normal_model", model);
-        backpack.Render((*geometry_pass_shader));
-    }
-    */
+    glPolygonMode(GL_FRONT_AND_BACK, renderer->m_Settings.wireframe ? GL_LINE : GL_FILL);
     renderer->Render();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -293,8 +300,8 @@ void StartingScene::Render() {
     glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     lighting_pass_shader->setInt("light_count", temporary_light_data.size());
-    lighting_pass_shader->setFloat("intensity", renderer->settings.intensity);
-    lighting_pass_shader->setVec3("viewPos", renderer->current_camera->m_Position);
+    lighting_pass_shader->setFloat("intensity", renderer->m_Settings.intensity);
+    lighting_pass_shader->setVec3("viewPos", renderer->m_CurrentCamera->m_Position);
     // finally render quad
     renderer->SimpleQuad();
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -334,7 +341,7 @@ void StartingScene::Render() {
         glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         blur_shader->setInt("horizontal", horizontal);
-        // glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
         renderer->SimpleQuad();
         horizontal = !horizontal;
@@ -354,29 +361,51 @@ void StartingScene::Render() {
 
     renderer->GatherImGui();
 
+    logger->Draw("Log");
+
+    ImGui::ShowDemoWindow();
+
     if (ImGui::Begin("Buffer View")) {
         const auto size = ImVec2(Rendering::SCREEN_WIDTH / 10.0, Rendering::SCREEN_HEIGHT / 10.0);
         // ImGui::Image((ImTextureID)gPosition, size, ImVec2(-1, 1), ImVec2(0, 0));
         // ImGui::Image((ImTextureID)gNormal, size, ImVec2(-1, 1), ImVec2(0, 0));
         ImGui::Image((ImTextureID)gAlbedoSpec, size, ImVec2(-1, 1), ImVec2(0, 0));
 
-        ImGui::Image((ImTextureID)colorBuffers[0], size, ImVec2(1, 1), ImVec2(0, 0));
-        ImGui::Image((ImTextureID)colorBuffers[1], size, ImVec2(1, 1), ImVec2(0, 0));
+        ImGui::Image((ImTextureID)colorBuffers[0], size, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((ImTextureID)colorBuffers[1], size, ImVec2(0, 1), ImVec2(1, 0));
 
-        ImGui::Image((ImTextureID)pingpongColorbuffers[0], size, ImVec2(1, 1), ImVec2(0, 0));
+        ImGui::Image((ImTextureID)pingpongColorbuffers[0], size, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
     }
     else {
         ImGui::End();
     }
+
+    if (ImGui::Begin("Renderer")) {
+        if (ImGui::CollapsingHeader("Light Sources")) {
+            unsigned int i = 0;
+            for (auto& light : light_data) {
+                ImGui::ColorEdit3((std::to_string(i) + "> Color:").c_str(), &light.data.Color[0], ImGuiColorEditFlags_Float);
+                ImGui::DragFloat3((std::to_string(i) + "> Position:").c_str(), &light.data.Position[0], 0.2f);
+                i++;
+                ImGui::Separator();
+            }
+        }
+        ImGui::End();
+    }
+    else {
+        ImGui::End();
+    }
+
+    // GLGetErrors();
 }
 
 void StartingScene::RegenerateLights() {
     Renderer* renderer = &Renderer::instance();
-    const float constant = renderer->settings.light_constant; // note that we don't send this to the shader, we assume it is always 1.0 (in our case)
-    const float linear = renderer->settings.light_linear;
-    const float quadratic = renderer->settings.light_quadratic;
-    const float intensity = renderer->settings.intensity;
+    const float constant = renderer->m_Settings.light_constant; // note that we don't send this to the shader, we assume it is always 1.0 (in our case)
+    const float linear = renderer->m_Settings.light_linear;
+    const float quadratic = renderer->m_Settings.light_quadratic;
+    const float intensity = renderer->m_Settings.intensity;
 
 
     for (auto& light : light_data) {

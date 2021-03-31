@@ -2,6 +2,7 @@
 #include "../stb_image.h"
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
+#include "../ImGui/ImGuiLogger.h"
 
 std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip = true, const bool gamma = false);
 static bool open = true;
@@ -21,71 +22,75 @@ Model& Renderer::NewModel() {
 }
 
 std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string shader_name) {
-    std::cout << "New quad at " << this << std::endl;
+    Logger::instance().AddLog("[Renderer] New quad created.\n");
+
 	Shader* shader = this->GetShader(shader_name);
 	Texture* texture = this->GetTexture(texture_name);
 
     auto quad = std::shared_ptr<Quad>(new Quad(texture, shader));
-	
-    objects.push_back(quad);
+    m_Objects.push_back(quad);
 
 	return quad;
 }
 
 std::shared_ptr<InstancedQuad> Renderer::NewInstancedQuad(std::string texture_name, std::string shader_name, std::string instance_name) {
+    Logger::instance().AddLog("[Renderer] New instanced quad with name %s\n", instance_name.c_str());
+
     Shader* shader = this->GetShader(shader_name);
     Texture* texture = this->GetTexture(texture_name);
 
     auto instance = std::shared_ptr<InstancedQuad>(new InstancedQuad(texture, shader));
-    auto ret = instanced_quads.insert({instance_name, instance});
-
+    auto ret = m_InstancedQuad.insert({instance_name, instance});
     return instance;
 }
 
 
 std::shared_ptr<InstancedModel> Renderer::NewInstancedModel(std::string model_path, std::string shader_name, std::string instance_name) {
+    Logger::instance().AddLog("[Renderer] New instanced model with name %s\n", instance_name.c_str());
+
     Shader* shader = this->GetShader(shader_name);
 
     auto instance = std::shared_ptr<InstancedModel>(new InstancedModel(model_path.c_str(), shader));
-    auto ret = instanced_models.insert({ instance_name, instance });
-
+    auto ret = m_InstancedModels.insert({ instance_name, instance });
     return instance;
 }
 
 Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, std::string name) {
-    std::cout << "New shader at " << this << std::endl;
-	auto ret = shaders.insert({ name, Shader(vertex_path, fragment_path, name) });
+    Logger::instance().AddLog("[Renderer] New VS+FS shader with name %s\n", name.c_str());
+
+	auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, name) });
 	return &ret.first->second;
 }
 
 Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* geometry_pass, std::string name) {
-    std::cout << "Creating new shader of type " << name << std::endl;
-    auto ret = shaders.insert({ name, Shader(vertex_path, fragment_path, geometry_pass, name) });
+    Logger::instance().AddLog("[Renderer] New VS+FS+GS shader with name %s\n", name.c_str());
+
+    auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, geometry_pass, name) });
     return &ret.first->second;
 }
 
 
 Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name) {
-    std::cout << "Creating new shader of type " << name << std::endl;
-    auto ret = shaders.insert({ name, Shader(vertex_path, fragment_path, tess_control_path, tess_eval_path, name) });
+    Logger::instance().AddLog("[Renderer] New VS+FS+TCS+TES+GS shader with name %s\n", name.c_str());
+    auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, tess_control_path, tess_eval_path, name) });
     return &ret.first->second;
 }
 
 
 void Renderer::Render() {
     glm::mat4 projection = glm::perspective(
-        glm::radians(current_camera->m_Zoom), 
+        glm::radians(m_CurrentCamera->m_Zoom), 
         (float)Rendering::SCREEN_WIDTH / (float)Rendering::SCREEN_HEIGHT, 0.1f, 100.0f);
 
-	for (auto& obj : objects) {
-		obj->Render(current_camera, projection);
+	for (auto& obj : m_Objects) {
+		obj->Render(m_CurrentCamera, projection);
 	}
-    for (auto const& [name, instance] : instanced_quads) {
-        instance->Render(current_camera, projection);
+    for (auto const& [name, instance] : m_InstancedQuad) {
+        instance->Render(m_CurrentCamera, projection);
     }
 
-    for (auto const& [name, instance] : instanced_models) {
-        instance->Render(current_camera, projection);
+    for (auto const& [name, instance] : m_InstancedModels) {
+        instance->Render(m_CurrentCamera, projection);
     }
 }
 
@@ -111,10 +116,10 @@ void Renderer::GatherImGui() {
             window_flags |= ImGuiWindowFlags_NoMove;
         if (ImGui::Begin("Renderer: Frame Stats", &open, window_flags))
         {
-            ImGui::Text("Frame Time: %.2f ms", this->frame_time * 1000.0);
-            ImGui::Text("FPS: %.1f", 1.0 / this->frame_time);
-            ImGui::Text("Visible Light: %d", this->visible_lights);
-            ImGui::Text("Visible Models: %d", this->visible_models);
+            ImGui::Text("Frame Time: %.2f ms", this->m_FrameTime * 1000.0);
+            ImGui::Text("FPS: %.1f", 1.0 / this->m_FrameTime);
+            ImGui::Text("Visible Light: %d", this->m_VisibleLights);
+            ImGui::Text("Visible Models: %d", this->m_VisibleModels);
         }
         ImGui::End();
     }
@@ -139,7 +144,7 @@ void Renderer::GatherImGui() {
     };
 
     if (ImGui::CollapsingHeader("Textures", &open)) {
-        for (const auto& [name, tex] : textures) {
+        for (const auto& [name, tex] : m_Textures) {
             ImGui::Image((ImTextureID)tex.id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::SameLine();
 
@@ -154,7 +159,7 @@ void Renderer::GatherImGui() {
     }
 
     if (ImGui::CollapsingHeader("Shaders", &open)) {
-        for (const auto& [name, shader] : shaders) {
+        for (const auto& [name, shader] : m_Shaders) {
             if (ImGui::TreeNode(name.c_str())) {
                 ImGui::Text("ID: %d", shader.ID);
                 ImGui::TreePop();
@@ -164,8 +169,8 @@ void Renderer::GatherImGui() {
 
     if (ImGui::CollapsingHeader("Cameras", &open)) {
         std::string camera_name;
-        for (const auto& [name, camera] : cameras) {
-            if (camera == current_camera) {
+        for (const auto& [name, camera] : m_Cameras) {
+            if (camera == m_CurrentCamera) {
                 camera_name = "[SELECTED]" + name;
             }
             else {
@@ -179,18 +184,18 @@ void Renderer::GatherImGui() {
     }
 
     if (ImGui::CollapsingHeader("Basic Entities", &open)) {
-        for (auto object : objects) {
+        for (auto object : m_Objects) {
             object->UI_Description();
             ImGui::Separator();
         }
     }
 
     if (ImGui::CollapsingHeader("Instanced Entities", &open)) {
-        for (const auto& [name, instance_controller] : instanced_quads) {
+        for (const auto& [name, instance_controller] : m_InstancedQuad) {
             instance_controller->UI_Description();
             ImGui::Separator();
         }
-        for (const auto& [name, instance_controller] : instanced_models) {
+        for (const auto& [name, instance_controller] : m_InstancedModels) {
             instance_controller->UI_Description();
             ImGui::Separator();
         }
@@ -207,39 +212,42 @@ void Renderer::GatherImGui() {
 
 		bool wireframe = false;
         */
-        ImGui::DragInt("Light Count", &settings.light_count, 1, 0, 256);
-        ImGui::DragFloat("Light Constant", &settings.light_constant, 0.1, 1.0, 100.f);
-        ImGui::DragFloat("Light Linear", &settings.light_linear, 0.05, 0.01, 100.f);
-        ImGui::DragFloat("Light Quadratic", &settings.light_quadratic, 0.1, 1.0, 100.f);
-        ImGui::DragFloat("Light Intensity", &settings.intensity, 0.2, 0.2, 20.f);
-        ImGui::DragFloat("Model Frustum Radius", &settings.models_sphere_radius, 0.05, 0.01, 5.f);
-        ImGui::Checkbox("Wireframe", &settings.wireframe);
+        ImGui::DragInt("Light Count", &m_Settings.light_count, 1, 0, 256);
+        ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1, 1.0, 100.f);
+        ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05, 0.01, 100.f);
+        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.1, 1.0, 100.f);
+        ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2, 0.2, 20.f);
+        ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05, 0.01, 5.f);
+        ImGui::Checkbox("Wireframe", &m_Settings.wireframe);
     }
 
     ImGui::End();
 }
 
 Shader* Renderer::GetShader(std::string shader_name) {
-	auto val = shaders.find(shader_name);
-	if (val != shaders.end()) {
+	auto val = m_Shaders.find(shader_name);
+	if (val != m_Shaders.end()) {
 		return &val->second;
 	}
+    Logger::instance().AddLog("[Renderer] Shader lookup failed, desired name: %s\n", shader_name.c_str());
 	return nullptr;
 }
 
 Texture* Renderer::GetTexture(std::string texture_name) {
-	auto val = textures.find(texture_name);
-	if (val != textures.end()) {
+	auto val = m_Textures.find(texture_name);
+	if (val != m_Textures.end()) {
 		return &val->second;
 	}
+    Logger::instance().AddLog("[Renderer] Texture lookup failed, desired name: %s\n", texture_name.c_str());
 	return nullptr;
 }
 
 std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_name) {
-    auto val = instanced_quads.find(instance_name);
-    if (val != instanced_quads.end()) {
+    auto val = m_InstancedQuad.find(instance_name);
+    if (val != m_InstancedQuad.end()) {
         return val->second;
     }
+    Logger::instance().AddLog("[Renderer] Instanced Quad lookup failed, desired name: %s\n", instance_name.c_str());
     return nullptr;
 }
 
@@ -247,7 +255,7 @@ std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_n
 Texture* Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool gamma) {
     auto [tex_id, tex_type] = m_loadTexture(file_path, true, gamma);
 
-    auto ret = textures.insert(
+    auto ret = m_Textures.insert(
         { 
         name, 
             {
@@ -255,6 +263,9 @@ Texture* Renderer::NewTexture(const char* file_path, std::string name, std::stri
             }
         }
     );
+    if (!ret.second) {
+        Logger::instance().AddLog("[Renderer] Texture map insertion failed, name: %s\n", name.c_str());
+    }
     return &ret.first->second;
 }
 
@@ -291,7 +302,7 @@ std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const boo
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
+        Logger::instance().AddLog("[Renderer] Texture loading failed, path: %s\n", path);
         stbi_image_free(data);
     }
     stbi_set_flip_vertically_on_load(true);
@@ -304,30 +315,30 @@ std::shared_ptr<Camera::BaseCamera> Renderer::NewCamera(glm::vec3 coords, std::s
     case Camera::Camera_Type::FLYCAM:
     {
         auto fly_cam = std::shared_ptr<Camera::FlyCamera>(new Camera::FlyCamera(coords));
-        cameras.insert({ camera_name, fly_cam });
+        m_Cameras.insert({ camera_name, fly_cam });
         // TODO: technically, we do want to check for insert result to ensure we don't create a new camera with the same name
         // doesn't really matter rn since we don't have a strong need in many cameras at once
+        Logger::instance().AddLog("[Renderer] New Fly camera with name %s\n", camera_name);
         return fly_cam;
     }
     case Camera::Camera_Type::ARCBALL:
     {
         auto arcball_cam = std::shared_ptr<Camera::ArcballCamera>(new Camera::ArcballCamera(coords));
-        cameras.insert({ camera_name, arcball_cam });
+        m_Cameras.insert({ camera_name, arcball_cam });
+        Logger::instance().AddLog("[Renderer] New Arcball camera with name %s\n", camera_name);
         return arcball_cam;
     }
     }
 }
 
 void Renderer::SetActiveCamera(std::string camera_name) {
-    std::cout << "cameras vector length: " << cameras.size() << std::endl;
-    auto val = cameras.find(camera_name);
-    if (val != cameras.end()) {
-        current_camera = val->second;
-        current_camera_type = current_camera->m_CamType;
-        std::cout << "using camera " << current_camera << " with name " << camera_name << std::endl;
+    auto val = m_Cameras.find(camera_name);
+    if (val != m_Cameras.end()) {
+        m_CurrentCamera = val->second;
+        m_CurrentCameraType = m_CurrentCamera->m_CamType;
     }
     else {
-        std::cout << "camera with name " << camera_name << " was not found!" << std::endl;
+        Logger::instance().AddLog("[Renderer] Camera lookup failed, desired name: %s\n", camera_name);
     }
 }
 

@@ -18,7 +18,9 @@ int main()
     Bloom + HDR
 
 В планах:
+    Имгуи логгер (по возможности)
     Компрессия текстур (https://www.informit.com/articles/article.aspx?p=770639&seqNum=3)
+    EnTT
     SSAO (чекнуть HDAO, HBAO)
     Global Illumination
     Shadow mapping

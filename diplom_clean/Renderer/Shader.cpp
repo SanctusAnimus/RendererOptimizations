@@ -41,14 +41,14 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* tes
     auto fragment = addShader(fragmentPath, GL_FRAGMENT_SHADER, "FRAGMENT");
     auto tess_control = addShader(tessControlPath, GL_TESS_CONTROL_SHADER, "TESS_CONTROL");
     auto tess_eval = addShader(tessEvalPath, GL_TESS_EVALUATION_SHADER, "TESS_EVAL");
-    auto geometry = addShader("Shaders/Tessellation/tessellation_geometry.glsl", GL_GEOMETRY_SHADER, "GEOMETRY");
+    // auto geometry = addShader("Shaders/Tessellation/tessellation_geometry.glsl", GL_GEOMETRY_SHADER, "GEOMETRY");
 
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
     glAttachShader(ID, tess_control);
     glAttachShader(ID, tess_eval);
-    glAttachShader(ID, geometry);
+    // glAttachShader(ID, geometry);
     glLinkProgram(ID);
     checkCompileErrors(ID, "PROGRAM");
     // delete the shaders as they're linked into our program now and no longer necessary
@@ -56,7 +56,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* tes
     glDeleteShader(fragment);
     glDeleteShader(tess_control);
     glDeleteShader(tess_eval);
-    glDeleteShader(geometry);
+    // glDeleteShader(geometry);
 }
 
 void Shader::use() 

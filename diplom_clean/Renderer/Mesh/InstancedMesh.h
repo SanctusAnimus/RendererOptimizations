@@ -14,9 +14,9 @@ public:
     // mesh data
     std::vector<Vertex>       vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture>      textures;
+    std::vector<Texture>      m_Textures;
 
-    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures);
     void Bind(Shader* shader);
     void UpdateModels(glm::mat4* model_ptr, int count);
     void Unbind();
