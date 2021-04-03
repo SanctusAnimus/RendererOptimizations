@@ -8,7 +8,7 @@
 class InstancedQuad
 {
 public:
-	InstancedQuad(Texture* texture, Shader* shader);
+	InstancedQuad(Texture* texture, std::shared_ptr<Shader> shader);
 	void Add(glm::mat4 position);
 
 	void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection);
@@ -31,7 +31,7 @@ private:
 		1, 2, 3    // second triangle
 	};
 
-	Shader* m_Shader;
+	std::shared_ptr<Shader> m_Shader;
 	Texture* m_Texture;
 	Texture* m_NormalMap = nullptr;
 	Texture* m_SpecularMap = nullptr;

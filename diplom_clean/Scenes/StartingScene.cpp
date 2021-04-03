@@ -339,7 +339,7 @@ void StartingScene::Render() {
         model = glm::scale(model, glm::vec3(0.055f));
         light_box_shader->setMat4("model", model);
         light_box_shader->setVec3("lightColor", glm::vec3(temporary_light_data[i].Color));
-        cube.Render((*light_box_shader));
+        cube.Render(light_box_shader);
         // renderCube();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -371,8 +371,6 @@ void StartingScene::Render() {
     renderer->SimpleQuad();
 
     renderer->GatherImGui();
-
-    logger->Draw("Log");
 
     ImGui::ShowDemoWindow();
 

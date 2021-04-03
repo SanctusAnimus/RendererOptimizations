@@ -50,10 +50,10 @@ private:
 	int tess_outer = 10;
 	int tess_inner = 10;
 
-	Shader* tess_shader;
-	Shader* points_shader;
-	Shader* axes_shader;
-	Shader* plot_shader;
+	std::shared_ptr<Shader> tess_shader;
+	std::shared_ptr<Shader> points_shader;
+	std::shared_ptr<Shader> axes_shader;
+	std::shared_ptr<Shader> plot_shader;
 
 	glm::vec3 translation;
 

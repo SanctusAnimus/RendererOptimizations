@@ -19,7 +19,7 @@ public:
     InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures, unsigned int ABO);
     ~InstancedMesh();
 
-    void Bind(Shader* shader);
+    void Bind(std::shared_ptr<Shader> shader);
     void UpdateModels(glm::mat4* model_ptr, int count);
     void Unbind();
 private:

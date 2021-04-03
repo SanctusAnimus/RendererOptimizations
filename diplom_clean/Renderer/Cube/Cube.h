@@ -9,7 +9,7 @@ class Cube :
     public Renderable
 {
 public:
-	Cube(Texture* texture, Shader* shader);
+	Cube(Texture* texture, std::shared_ptr<Shader> shader);
 
 	void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection) override;
 
@@ -21,7 +21,6 @@ private:
 	unsigned int m_VBO;
 	unsigned int m_EBO;
 
-	Shader* m_Shader;
 	Texture* m_Texture;
 	Texture* m_NormalMap = nullptr;
 	Texture* m_SpecularMap = nullptr;

@@ -3,6 +3,7 @@
 #define TEXTURE_STRUCT_DECL
 
 #include <string>
+#include <iostream>
 #include <glad/glad.h>
 
 struct Texture {
@@ -12,6 +13,7 @@ struct Texture {
     std::string path;  // we store the path of the texture to compare with other textures
 
     ~Texture() {
+        std::cout << "destroying texture " << id << " " << path << std::endl;
         // glDeleteTextures(1, &id);
     }
 };

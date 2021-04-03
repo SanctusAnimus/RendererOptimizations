@@ -40,13 +40,12 @@ private:
 	unsigned int pingpongFBO[2];
 	unsigned int pingpongColorbuffers[2];
 
-	Shader* geometry_pass_shader;
-	Shader* instanced_gp_shader;
-	Shader* lighting_pass_shader;
-	Shader* light_box_shader;
-
-	Shader* blur_shader;
-	Shader* final_shader;
+	std::shared_ptr<Shader> geometry_pass_shader;
+	std::shared_ptr<Shader> instanced_gp_shader;
+	std::shared_ptr<Shader> lighting_pass_shader;
+	std::shared_ptr<Shader> light_box_shader;
+	std::shared_ptr<Shader> blur_shader;
+	std::shared_ptr<Shader> final_shader;
 
 	Model backpack;
 	Model cube;

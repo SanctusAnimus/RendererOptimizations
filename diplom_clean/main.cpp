@@ -15,7 +15,7 @@ int main()
     UI (ImGui)
     Frustum Culling (для источников света и моделей, точечный)
     Bloom + HDR
-    Имгуи логгер (по возможности)
+    Имгуи логгер
 
 В планах:
     Компрессия текстур (https://www.informit.com/articles/article.aspx?p=770639&seqNum=3)

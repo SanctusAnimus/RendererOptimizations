@@ -15,7 +15,7 @@ public:
     std::vector<Texture>      m_Textures;
 
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures);
-    void Render(Shader& shader);
+    void Render(std::shared_ptr<Shader> shader);
 private:
     //  render data
     unsigned int VAO, VBO, EBO, ABO;

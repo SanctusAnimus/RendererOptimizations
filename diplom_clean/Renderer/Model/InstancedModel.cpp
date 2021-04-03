@@ -11,7 +11,7 @@ bool IsVisible(glm::vec4 worldspace, float radius) {
         abs(worldspace.z) < worldspace.w + radius;
 }
 
-InstancedModel::InstancedModel(const char* path, Shader* shader) : m_Shader(shader) {
+InstancedModel::InstancedModel(const char* path, std::shared_ptr<Shader> shader) : m_Shader(shader) {
 	loadModel(path);
 }
 

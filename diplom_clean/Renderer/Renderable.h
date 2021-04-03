@@ -14,7 +14,7 @@
 
 class Renderable {
 public:
-	Renderable(Texture* texture, Shader* shader) 
+	Renderable(Texture* texture, std::shared_ptr<Shader> shader)
 		: m_Transform({ 0.f }), m_Scale({ 1.f }), m_Rotation({ 0.f }), m_RotationRadians(0), m_Texture(texture), m_Shader(shader)
 	{};
 
@@ -37,7 +37,7 @@ protected:
 	float m_RotationRadians;
 	glm::vec3 m_Rotation;
 
-	Shader* m_Shader;
+	std::shared_ptr<Shader> m_Shader;
 	Texture* m_Texture;
 	Texture* m_NormalMap = nullptr;
 	Texture* m_SpecularMap = nullptr;

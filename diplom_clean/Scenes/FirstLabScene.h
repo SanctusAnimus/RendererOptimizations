@@ -32,10 +32,10 @@ private:
 	unsigned int m_AxesVAO = 0;
 	unsigned int m_AxesVBO;
 
-	Shader* light_box_shader;
-	Shader* points_shader;
-	Shader* axes_shader;
-	Shader* normals_shader;
+	std::shared_ptr<Shader> light_box_shader;
+	std::shared_ptr<Shader> points_shader;
+	std::shared_ptr<Shader> axes_shader;
+	std::shared_ptr<Shader> normals_shader;
 
 	std::vector<BasicVertex> mesh;
 	std::vector<BasicVertex> grid;

@@ -25,7 +25,7 @@ Model& Renderer::NewModel() {
 std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string shader_name) {
     Logger::instance().AddLog("[Renderer] New quad created.\n");
 
-	Shader* shader = this->GetShader(shader_name);
+	auto shader = this->GetShader(shader_name);
 	Texture* texture = this->GetTexture(texture_name);
 
     auto quad = std::shared_ptr<Quad>(new Quad(texture, shader));
@@ -37,7 +37,7 @@ std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string sh
 std::shared_ptr<InstancedQuad> Renderer::NewInstancedQuad(std::string texture_name, std::string shader_name, std::string instance_name) {
     Logger::instance().AddLog("[Renderer] New instanced quad with name %s\n", instance_name.c_str());
 
-    Shader* shader = this->GetShader(shader_name);
+    auto shader = this->GetShader(shader_name);
     Texture* texture = this->GetTexture(texture_name);
 
     auto instance = std::shared_ptr<InstancedQuad>(new InstancedQuad(texture, shader));
@@ -49,32 +49,37 @@ std::shared_ptr<InstancedQuad> Renderer::NewInstancedQuad(std::string texture_na
 std::shared_ptr<InstancedModel> Renderer::NewInstancedModel(std::string model_path, std::string shader_name, std::string instance_name) {
     Logger::instance().AddLog("[Renderer] New instanced model with name %s\n", instance_name.c_str());
 
-    Shader* shader = this->GetShader(shader_name);
+
+    auto shader = this->GetShader(shader_name);
 
     auto instance = std::shared_ptr<InstancedModel>(new InstancedModel(model_path.c_str(), shader));
     auto ret = m_InstancedModels.insert({ instance_name, instance });
     return instance;
 }
 
-Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, std::string name) {
+std::shared_ptr<Shader> Renderer::NewShader(const char* vertex_path, const char* fragment_path, std::string name) {
     Logger::instance().AddLog("[Renderer] New VS+FS shader with name %s\n", name.c_str());
 
-	auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, name) });
-	return &ret.first->second;
+    auto shader = std::shared_ptr<Shader>(new Shader(vertex_path, fragment_path, name));
+	m_Shaders.insert({ name, shader });
+	return shader;
 }
 
-Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* geometry_pass, std::string name) {
+std::shared_ptr<Shader> Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* geometry_pass, std::string name) {
     Logger::instance().AddLog("[Renderer] New VS+FS+GS shader with name %s\n", name.c_str());
 
-    auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, geometry_pass, name) });
-    return &ret.first->second;
+    auto shader = std::shared_ptr<Shader>(new Shader(vertex_path, fragment_path, geometry_pass, name));
+    m_Shaders.insert({ name, shader });
+    return shader;
 }
 
 
-Shader* Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name) {
+std::shared_ptr<Shader> Renderer::NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name) {
     Logger::instance().AddLog("[Renderer] New VS+FS+TCS+TES+GS shader with name %s\n", name.c_str());
-    auto ret = m_Shaders.insert({ name, Shader(vertex_path, fragment_path, tess_control_path, tess_eval_path, name) });
-    return &ret.first->second;
+
+    auto shader = std::shared_ptr<Shader>(new Shader(vertex_path, fragment_path, tess_control_path, tess_eval_path, name));
+    m_Shaders.insert({ name, shader });
+    return shader;
 }
 
 
@@ -162,7 +167,7 @@ void Renderer::GatherImGui() {
     if (ImGui::CollapsingHeader("Shaders", &open)) {
         for (const auto& [name, shader] : m_Shaders) {
             if (ImGui::TreeNode(name.c_str())) {
-                ImGui::Text("ID: %d", shader.ID);
+                ImGui::Text("ID: %d", shader->ID);
                 ImGui::TreePop();
             }
         }
@@ -203,7 +208,6 @@ void Renderer::GatherImGui() {
     }
 
     if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
-        ImGui::DragInt("Light Count", &m_Settings.light_count, 1, 0, 256);
         ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1, 1.0, 100.f);
         ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05, 0.01, 100.f);
         ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.1, 1.0, 100.f);
@@ -217,10 +221,10 @@ void Renderer::GatherImGui() {
     ImGui::End();
 }
 
-Shader* Renderer::GetShader(std::string shader_name) {
+std::shared_ptr<Shader> Renderer::GetShader(std::string shader_name) {
 	auto val = m_Shaders.find(shader_name);
 	if (val != m_Shaders.end()) {
-		return &val->second;
+		return val->second;
 	}
     Logger::instance().AddLog("[Renderer] Shader lookup failed, desired name: %s\n", shader_name.c_str());
 	return nullptr;

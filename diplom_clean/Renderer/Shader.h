@@ -23,8 +23,8 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath, const char* tessControlPath, const char* tessEvalPath, std::string name);
 
     ~Shader() {
-        // std::cout << "shader destructor called " << ID << " | " << m_Name << std::endl;
-        // glDeleteProgram(ID);
+        std::cout << "shader destructor called " << ID << " | " << m_Name << std::endl;
+        glDeleteProgram(ID);
     }
 
     void use();
@@ -47,7 +47,7 @@ public:
 private:
     void checkCompileErrors(unsigned int shader, std::string type);
     unsigned int addShader(const char* path, unsigned int shader_type, const std::string& s_type_repr);
-    std::string& m_Name;
+    std::string m_Name;
 };
 
 

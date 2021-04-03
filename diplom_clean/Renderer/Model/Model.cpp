@@ -3,7 +3,7 @@
 
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
-void Model::Render(Shader& shader)
+void Model::Render(std::shared_ptr<Shader> shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Render(shader);

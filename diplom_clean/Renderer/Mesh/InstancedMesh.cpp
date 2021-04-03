@@ -78,7 +78,7 @@ void InstancedMesh::setupMesh(unsigned int ABO)
     glBindVertexArray(0);
 }
 
-void InstancedMesh::Bind(Shader* shader) {
+void InstancedMesh::Bind(std::shared_ptr<Shader> shader) {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;

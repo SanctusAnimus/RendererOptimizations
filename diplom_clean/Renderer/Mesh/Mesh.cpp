@@ -44,7 +44,7 @@ void Mesh::setupMesh()
 }
 
 
-void Mesh::Render(Shader& shader)
+void Mesh::Render(std::shared_ptr<Shader> shader)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
@@ -62,7 +62,7 @@ void Mesh::Render(Shader& shader)
         else if (name == "texture_normal")
             number = std::to_string(normalNr++);
 
-        shader.setInt((name + number).c_str(), i);
+        shader->setInt((name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);

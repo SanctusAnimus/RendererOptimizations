@@ -161,7 +161,7 @@ void Lab1Scene::Render() {
         model = glm::scale(model, glm::vec3(0.055f));
         points_shader->setMat4("model", model);
         points_shader->setVec3("lightColor", glm::vec3(0.8f, 0.6f, 0.f));
-        cube.Render((*points_shader));
+        cube.Render(points_shader);
     }
 
     if (ImGui::Begin("Settings")) {

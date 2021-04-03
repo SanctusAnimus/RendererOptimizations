@@ -2,7 +2,7 @@
 #include "../Renderer.h"
 
 
-Cube::Cube(Texture* texture, Shader* shader) : Renderable(texture, shader) {
+Cube::Cube(Texture* texture, std::shared_ptr<Shader> shader) : Renderable(texture, shader) {
 
     static GLfloat vertices[] = {
     1.0,	1.0,	1.0,

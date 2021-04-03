@@ -98,6 +98,7 @@ void Application::SetupScene() {
 }
 
 void Application::Run() {
+    Logger* logger = &Logger::instance();
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
@@ -110,11 +111,13 @@ void Application::Run() {
 
     current_scene->Render();
 
+    logger->Draw("Log");
+
     if (ImGui::Begin("Scene selection")) {
         const char* items[] = { "Lab 1", "Lab 2-3", "Lab 4"};
         static int item_current = 0;
         if (ImGui::Combo("scene_selection", &item_current, items, IM_ARRAYSIZE(items))) {
-            Logger::instance().AddLog("[Application] Switching scene to %s\n", items[item_current]);
+            logger->AddLog("[Application] Switching scene to %s\n", items[item_current]);
             // TODO: this is retarded, replace with better approach
             Renderer::instance().Reset();
             if (items[item_current] == "Lab 1") {

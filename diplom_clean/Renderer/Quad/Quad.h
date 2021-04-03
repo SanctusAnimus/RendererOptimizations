@@ -7,7 +7,7 @@
 class Quad : public Renderable
 {
 public:
-	Quad(Texture* texture, Shader* shader);
+	Quad(Texture* texture, std::shared_ptr<Shader> shader);
 
 	void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection) override;
 	void UI_Description() override;

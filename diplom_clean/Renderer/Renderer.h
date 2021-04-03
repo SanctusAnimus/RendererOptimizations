@@ -21,9 +21,6 @@ namespace Rendering {
 
 
 	struct RenderSettings {
-		int light_count = 32;
-		float light_spread = 6;
-
 		float light_constant = 1.0;
 		float light_linear = 0.7;
 		float light_quadratic = 2.1;
@@ -33,8 +30,6 @@ namespace Rendering {
 		float exposure = 1.0;
 
 		bool wireframe = false;
-		bool gamma_correction = false;
-
 
 		float models_sphere_radius = 1.0;
 	};
@@ -52,18 +47,18 @@ public:
 	std::shared_ptr<InstancedModel> NewInstancedModel(std::string model_path, std::string shader_name, std::string instance_name);
 
 	// basic VS + FS shader
-	Shader* NewShader(const char* vertex_path, const char* fragment_path, std::string name);
+	std::shared_ptr<Shader> NewShader(const char* vertex_path, const char* fragment_path, std::string name);
 	// VS + FS + GS
-	Shader* NewShader(const char* vertex_path, const char* fragment_path, const char* geometry_pass, std::string name);
+	std::shared_ptr<Shader> NewShader(const char* vertex_path, const char* fragment_path, const char* geometry_pass, std::string name);
 	// VS + FS + TCS + TES + GS
-	Shader* NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name);
+	std::shared_ptr<Shader> NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name);
 
 
 	Texture* NewTexture(const char* file_path, std::string name, std::string type, const bool gamma = false);
 
 	std::shared_ptr<Camera::BaseCamera> NewCamera(glm::vec3 coords, std::string camera_name, Camera::Camera_Type cam_type);
 
-	Shader* GetShader(std::string shader_name);
+	std::shared_ptr<Shader> GetShader(std::string shader_name);
 	Texture* GetTexture(std::string texture_name);
 	std::shared_ptr<InstancedQuad> GetInstancedQuad(std::string instance_name);
 
@@ -95,7 +90,7 @@ private:
 	std::map<std::string, std::shared_ptr<InstancedQuad>> m_InstancedQuad;
 	std::map<std::string, std::shared_ptr<InstancedModel>> m_InstancedModels;
 
-	std::map<std::string, Shader> m_Shaders;
+	std::map<std::string, std::shared_ptr<Shader>> m_Shaders;
 	std::map<std::string, Texture> m_Textures;
 
 
