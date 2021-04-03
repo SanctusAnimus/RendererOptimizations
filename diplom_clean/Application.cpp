@@ -8,8 +8,8 @@
 #include "stb_image.h"
 
 #include "Scenes/StartingScene.h"
-#include "Scenes/Lab1Scene.h"
-#include "Scenes/Lab2Scene.h"
+#include "Scenes/FirstLabScene.h"
+#include "Scenes/SecondLabScene.h"
 #include "ImGui/ImGuiLogger.h"
 
 Application::Application() {
@@ -92,7 +92,7 @@ void Application::SetupCallbacks() {
 void Application::SetupScene() {
     Logger::instance().AddLog("[Application] Scene setup started...\n");
     // current_scene = std::shared_ptr<BaseScene>(new StartingScene());
-    current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
+    current_scene = std::shared_ptr<BaseScene>(new Lab1Scene());
     current_scene->Setup();
     Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
@@ -109,6 +109,32 @@ void Application::Run() {
     imgui_layer->Begin();
 
     current_scene->Render();
+
+    if (ImGui::Begin("Scene selection")) {
+        const char* items[] = { "Lab 1", "Lab 2-3", "Lab 4"};
+        static int item_current = 0;
+        if (ImGui::Combo("scene_selection", &item_current, items, IM_ARRAYSIZE(items))) {
+            Logger::instance().AddLog("[Application] Switching scene to %s\n", items[item_current]);
+            // TODO: this is retarded, replace with better approach
+            Renderer::instance().Reset();
+            if (items[item_current] == "Lab 1") {
+                current_scene = std::shared_ptr<BaseScene>(new Lab1Scene());
+                current_scene->Setup();
+            }
+            else if (items[item_current] == "Lab 2-3") {
+                current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
+                current_scene->Setup();
+            }
+            else if (items[item_current] == "Lab 4") {
+                current_scene = std::shared_ptr<BaseScene>(new StartingScene());
+                current_scene->Setup();
+            }
+        }
+        ImGui::End();
+    }
+    else {
+        ImGui::End();
+    }
 
     imgui_layer->End(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
 
@@ -140,22 +166,24 @@ void Application::processInput()
     if (glfwGetKey(m_Window, GLFW_KEY_3) == GLFW_PRESS) {
         if (m_Renderer->m_CurrentCameraType != Camera::Camera_Type::ARCBALL) {
             glm::vec3 position = m_Renderer->m_CurrentCamera->m_Position;
-            m_Renderer->SetActiveCamera("arcball_camera");
-            m_Renderer->m_CurrentCamera->m_Position = position;
-            m_Renderer->m_CurrentCamera->Update();
-            glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            if (m_Renderer->SetActiveCamera("arcball_camera")) {
+                m_Renderer->m_CurrentCamera->m_Position = position;
+                m_Renderer->m_CurrentCamera->Update();
+                glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-            Logger::instance().AddLog("[Input] Switching camera to arcball type\n");
+                Logger::instance().AddLog("[Input] Switching camera to arcball type\n");
+            }
         }
     }
     if (glfwGetKey(m_Window, GLFW_KEY_4) == GLFW_PRESS) {
         if (m_Renderer->m_CurrentCameraType != Camera::Camera_Type::FLYCAM) {
             glm::vec3 position = m_Renderer->m_CurrentCamera->m_Position;
-            m_Renderer->SetActiveCamera("fly_camera");
-            m_Renderer->m_CurrentCamera->m_Position = position;
-            m_Renderer->m_CurrentCamera->Update();
-            glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            Logger::instance().AddLog("[Input] Switching camera to flying type\n");
+            if (m_Renderer->SetActiveCamera("fly_camera")) {
+                m_Renderer->m_CurrentCamera->m_Position = position;
+                m_Renderer->m_CurrentCamera->Update();
+                glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                Logger::instance().AddLog("[Input] Switching camera to flying type\n");
+            }
         }
     }
 }

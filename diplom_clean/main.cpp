@@ -10,18 +10,21 @@ int main()
 /*
 
 Сделано:
-    Instancing (для квадов)
-    Instancing (для моделей)
-    Deferred Shading
+    Instancing
+    Deferred Shading (+ Light radius approximation)
     UI (ImGui)
-    Frustum Culling (для источников света и моделей, точечный(дерьмовый))
+    Frustum Culling (для источников света и моделей, точечный)
     Bloom + HDR
+    Имгуи логгер (по возможности)
 
 В планах:
-    Имгуи логгер (по возможности)
     Компрессия текстур (https://www.informit.com/articles/article.aspx?p=770639&seqNum=3)
     EnTT
-    SSAO (чекнуть HDAO, HBAO)
+    абстракция буферов
+    RAII всего (для переключения сцен!)
+
+Было бы прикольно иметь:
+    SSAO
     Global Illumination
     Shadow mapping
     Reflections
@@ -30,11 +33,11 @@ int main()
 Упомянуть в возможной дальнейшей работе
     Light Volumes
     Anti-aliasing (MSAA и т.д.)
+    Octree sorting
 
 Проиграно:
     Тесселляция (для треугольников работает коряво, а квады не отрисовываются вообще, мб надо больше точек опорных, мб выключить элементы)
     
-
 Включить выключенное:
     Parallax Mapping
     Skybox

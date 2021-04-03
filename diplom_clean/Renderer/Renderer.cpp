@@ -16,10 +16,11 @@ Renderer::Renderer() {
     std::cout << "Renderer created" << std::endl;
 }
 
-
+/*
 Model& Renderer::NewModel() {
 
 }
+*/
 
 std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string shader_name) {
     Logger::instance().AddLog("[Renderer] New quad created.\n");
@@ -202,21 +203,13 @@ void Renderer::GatherImGui() {
     }
 
     if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
-        /*
-        int light_count = 32;
-		float light_spread = 6;
-
-		float light_constant = 1.0;
-		float light_linear = 0.7;
-		float light_quadratic = 1.4;
-
-		bool wireframe = false;
-        */
         ImGui::DragInt("Light Count", &m_Settings.light_count, 1, 0, 256);
         ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1, 1.0, 100.f);
         ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05, 0.01, 100.f);
         ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.1, 1.0, 100.f);
         ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2, 0.2, 20.f);
+        ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05, 0.0, 2.f);
+        ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05, 0.0, 2.f);
         ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05, 0.01, 5.f);
         ImGui::Checkbox("Wireframe", &m_Settings.wireframe);
     }
@@ -331,14 +324,16 @@ std::shared_ptr<Camera::BaseCamera> Renderer::NewCamera(glm::vec3 coords, std::s
     }
 }
 
-void Renderer::SetActiveCamera(std::string camera_name) {
+bool Renderer::SetActiveCamera(std::string camera_name) {
     auto val = m_Cameras.find(camera_name);
     if (val != m_Cameras.end()) {
         m_CurrentCamera = val->second;
         m_CurrentCameraType = m_CurrentCamera->m_CamType;
+        return true;
     }
     else {
         Logger::instance().AddLog("[Renderer] Camera lookup failed, desired name: %s\n", camera_name);
+        return false;
     }
 }
 
@@ -403,4 +398,16 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     stbi_set_flip_vertically_on_load(true);
 
     return textureID;
+}
+
+
+void Renderer::Reset() {
+    std::cout << "RENDERER RESET CALLED" << std::endl;
+    m_CurrentCamera = nullptr;
+    m_Cameras.clear();
+    m_InstancedQuad.clear();
+    m_InstancedModels.clear();
+
+    m_Shaders.clear();
+    m_Textures.clear();
 }

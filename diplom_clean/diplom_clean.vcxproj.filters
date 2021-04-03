@@ -96,10 +96,10 @@
     <ClCompile Include="Renderer\Mesh\InstancedMesh.cpp">
       <Filter>Renderer\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Scenes\Lab1Scene.cpp">
+    <ClCompile Include="Scenes\FirstLabScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scenes\Lab2Scene.cpp">
+    <ClCompile Include="Scenes\SecondLabScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -176,10 +176,10 @@
     <ClInclude Include="ImGui\ImGuiLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\Lab1Scene.h">
+    <ClInclude Include="Scenes\FirstLabScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\Lab2Scene.h">
+    <ClInclude Include="Scenes\SecondLabScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -271,6 +271,7 @@
     <None Include="Shaders\Deferred\blur_fragment.glsl" />
     <None Include="Shaders\Deferred\bloom_final_vertex.glsl" />
     <None Include="Shaders\Deferred\bloom_final_fragment.glsl" />
+    <None Include="imgui.ini" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="old_main_part.txt" />

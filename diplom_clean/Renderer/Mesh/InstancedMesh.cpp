@@ -1,20 +1,31 @@
 #include "InstancedMesh.h"
 
-InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures)
+InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures, unsigned int ABO)
 {
     this->vertices = vertices;
     this->indices = indices;
     this->m_Textures = m_Textures;
 
-    setupMesh();
+    setupMesh(ABO);
 }
 
-void InstancedMesh::setupMesh()
+
+InstancedMesh::~InstancedMesh() {
+    return;
+    std::cout << "Instanced mesh deleted" << std::endl;
+    vertices.clear();
+    indices.clear();
+    m_Textures.clear();
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+}
+
+void InstancedMesh::setupMesh(unsigned int ABO)
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
-    glGenBuffers(1, &m_ABO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -47,7 +58,7 @@ void InstancedMesh::setupMesh()
 
     std::size_t vec4Size = sizeof(glm::vec4);
     // position matrixes
-    glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
+    glBindBuffer(GL_ARRAY_BUFFER, ABO);
     glEnableVertexAttribArray(5);
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
     glVertexAttribDivisor(5, 1);
@@ -72,7 +83,6 @@ void InstancedMesh::Bind(Shader* shader) {
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
     for (unsigned int i = 0; i < m_Textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -102,6 +112,6 @@ void InstancedMesh::Unbind() {
 
 
 void InstancedMesh::UpdateModels(glm::mat4* model_ptr, int count) {
-    glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
-    glBufferData(GL_ARRAY_BUFFER, count * 4 * sizeof(glm::vec4), model_ptr, GL_STREAM_DRAW);
+    // glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
+    // glBufferData(GL_ARRAY_BUFFER, count * 4 * sizeof(glm::vec4), model_ptr, GL_STREAM_DRAW);
 }

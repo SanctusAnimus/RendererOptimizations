@@ -21,6 +21,7 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform int light_count;
 uniform float intensity;
+uniform float bloom_threshold;
 uniform vec3 viewPos;
 
 layout (location = 0) out vec4 FragColor;
@@ -66,7 +67,7 @@ void main()
     FragColor = vec4(lighting, 1.0);
 
     float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0)
+    if(brightness > bloom_threshold)
         BrightColor = vec4(FragColor.rgb, 1.0);
     else
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);

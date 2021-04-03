@@ -15,6 +15,13 @@ InstancedModel::InstancedModel(const char* path, Shader* shader) : m_Shader(shad
 	loadModel(path);
 }
 
+InstancedModel::~InstancedModel() {
+    std::cout << "Instanced Model destructor called!" << std::endl;
+    meshes.clear();
+    positions.clear();
+    glDeleteBuffers(1, &m_ABO);
+}
+
 void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection)
 {
     int count = positions.size();
@@ -46,8 +53,12 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
     int visible_count = visible_positions.size();
     renderer->m_VisibleModels = visible_count;
 
+    glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_ABO);
+    glBufferData(GL_ARRAY_BUFFER, visible_count * 4 * sizeof(glm::vec4), &visible_positions[0], GL_STREAM_DRAW);
+
     for (auto& mesh : meshes) {
-        mesh.UpdateModels(&visible_positions[0], visible_count);
+        // mesh.UpdateModels(&visible_positions[0], visible_count);
         mesh.Bind(m_Shader);
         glDrawElementsInstanced(
             GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0, visible_count
@@ -77,6 +88,8 @@ void InstancedModel::loadModel(std::string path)
         return;
     }
     directory = path.substr(0, path.find_last_of('/'));
+
+    glGenBuffers(1, &m_ABO);
 
     processNode(scene->mRootNode, scene);
 }
@@ -182,7 +195,7 @@ InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
     m_Textures.insert(m_Textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    return InstancedMesh(vertices, indices, m_Textures);
+    return InstancedMesh(vertices, indices, m_Textures, m_ABO);
 }
 
 

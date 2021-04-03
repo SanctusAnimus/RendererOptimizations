@@ -1,6 +1,11 @@
 #version 460 core
-
 layout(quads, equal_spacing) in;
+
+out vec2 teTexCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 void main(void)
 {
@@ -31,10 +36,14 @@ void main(void)
     vec4 p03 = gl_in [12].gl_Position;
     vec4 p13 = gl_in [13].gl_Position;
     vec4 p23 = gl_in [14].gl_Position;
-    vec4 p33 = gl_in [15].gl_Position;  
+    vec4 p33 = gl_in [15].gl_Position;
+    
+    teTexCoord = gl_TessCoord.xy;
 
     gl_Position = bu.x * (bv.x * p00 + bv.y * p01 + bv.z * p02 + bv.w * p03) +
                   bu.y * (bv.x * p10 + bv.y * p11 + bv.z * p12 + bv.w * p13) +
                   bu.z * (bv.x * p20 + bv.y * p21 + bv.z * p22 + bv.w * p23) +
                   bu.w * (bv.x * p30 + bv.y * p31 + bv.z * p32 + bv.w * p33);
+
+    gl_Position = projection * view * model * gl_Position;
 }

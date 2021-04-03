@@ -148,7 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Scenes\Lab2Scene.cpp" />
+    <ClCompile Include="Scenes\SecondLabScene.cpp" />
     <ClCompile Include="Renderer\Camera\ArcballCamera.cpp" />
     <ClCompile Include="Renderer\Camera\BaseCamera.cpp" />
     <ClCompile Include="Scenes\BaseScene.cpp" />
@@ -168,13 +168,13 @@
     <ClCompile Include="Renderer\Renderable.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Shader.cpp" />
-    <ClCompile Include="Scenes\Lab1Scene.cpp" />
+    <ClCompile Include="Scenes\FirstLabScene.cpp" />
     <ClCompile Include="Scenes\StartingScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="ImGui\ImGuiLogger.h" />
-    <ClInclude Include="Scenes\Lab2Scene.h" />
+    <ClInclude Include="Scenes\SecondLabScene.h" />
     <ClInclude Include="Renderer\Camera\ArcballCamera.h" />
     <ClInclude Include="Renderer\Camera\BaseCamera.h" />
     <ClInclude Include="Scenes\BaseScene.h" />
@@ -192,7 +192,7 @@
     <ClInclude Include="Renderer\Renderable.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Shader.h" />
-    <ClInclude Include="Scenes\Lab1Scene.h" />
+    <ClInclude Include="Scenes\FirstLabScene.h" />
     <ClInclude Include="Shaders\Model\common.h" />
     <ClInclude Include="Scenes\StartingScene.h" />
     <ClInclude Include="stb_image.h" />
@@ -201,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc142-mt.dll" />
+    <None Include="imgui.ini" />
     <None Include="Shaders\Basic\fragment.glsl" />
     <None Include="Shaders\Basic\light_fragment.glsl" />
     <None Include="Shaders\Basic\light_vertex.glsl" />

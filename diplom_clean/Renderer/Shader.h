@@ -22,6 +22,11 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath, std::string name);
     Shader(const char* vertexPath, const char* fragmentPath, const char* tessControlPath, const char* tessEvalPath, std::string name);
 
+    ~Shader() {
+        // std::cout << "shader destructor called " << ID << " | " << m_Name << std::endl;
+        // glDeleteProgram(ID);
+    }
+
     void use();
     void setBool(const std::string& name, bool value) const;
     void setInt(const std::string& name, int value) const;

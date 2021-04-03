@@ -14,6 +14,7 @@ class InstancedModel
 {
 public:
     InstancedModel(const char* path, Shader* shader);
+    ~InstancedModel();
     void Add(glm::mat4 position);
     void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection);
     void UI_Description();
@@ -23,6 +24,8 @@ private:
     std::vector<InstancedMesh> meshes;
     std::vector<glm::mat4> positions;
     std::string directory;
+
+    unsigned int m_ABO;
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);

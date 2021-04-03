@@ -7,6 +7,8 @@
 #include "../Renderer/LightData.h"
 #include "../Renderer/LightSource.h"
 
+// #include <entt/entt.hpp>
+
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
@@ -21,6 +23,7 @@ public:
 		: backpack("Models/backpack/backpack.obj"), cube("Models/Crate/Crate1.obj") {
 		std::cout << "Scene constructor called!" << std::endl;
 	};
+	~StartingScene();
 	void RegenerateLights();
 	void Setup() override;
 	void Render() override;

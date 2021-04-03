@@ -29,6 +29,9 @@ namespace Rendering {
 		float light_quadratic = 2.1;
 		float intensity = 1.0;
 
+		float bloom_threshold = 1.0;
+		float exposure = 1.0;
+
 		bool wireframe = false;
 		bool gamma_correction = false;
 
@@ -42,7 +45,7 @@ class Renderer
 public:
 	Renderer();
 
-	Model& NewModel();
+	// Model& NewModel();
 	std::shared_ptr<Quad> NewQuad(std::string texture_name, std::string shader_name);
 	std::shared_ptr<InstancedQuad> NewInstancedQuad(std::string texture_name, std::string shader_name, std::string instance_name);
 
@@ -70,12 +73,14 @@ public:
 		return s_instance;
 	};
 
+	void Reset();
+
 	void Render();
 	void GatherImGui();
 
 	void SimpleQuad();
 
-	void SetActiveCamera(std::string camera_name);
+	bool SetActiveCamera(std::string camera_name);
 
 	std::shared_ptr<Camera::BaseCamera> m_CurrentCamera;
 	Camera::Camera_Type m_CurrentCameraType;

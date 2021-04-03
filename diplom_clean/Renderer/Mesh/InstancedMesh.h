@@ -16,15 +16,17 @@ public:
     std::vector<unsigned int> indices;
     std::vector<Texture>      m_Textures;
 
-    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures);
+    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures, unsigned int ABO);
+    ~InstancedMesh();
+
     void Bind(Shader* shader);
     void UpdateModels(glm::mat4* model_ptr, int count);
     void Unbind();
 private:
     //  render data
-    unsigned int VAO, VBO, EBO, m_ABO;
+    unsigned int VAO, VBO, EBO;
 
-    void setupMesh();
+    void setupMesh(unsigned int ABO);
 };
 
 #endif // !INSTANCEDMESH_CLASS_DECL

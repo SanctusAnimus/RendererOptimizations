@@ -28,6 +28,17 @@ static void GLGetErrors() {
     }
 }
 
+StartingScene::~StartingScene() {
+    unsigned int geometry_textures[3] = {gAlbedoSpec, gNormal, gPosition};
+
+    glDeleteFramebuffers(1, &gBuffer);
+    glDeleteTextures(3, geometry_textures);
+
+    glDeleteFramebuffers(2, pingpongFBO);
+    glDeleteTextures(2, pingpongColorbuffers);
+    glDeleteTextures(2, colorBuffers);
+}
+
 
 void StartingScene::Setup() {
     Logger* logger = &Logger::instance();
@@ -83,7 +94,6 @@ void StartingScene::Setup() {
     quad->SetTransform({ 0.f, -1.f, 0.f });
 
     auto instanced_backpack = renderer->NewInstancedModel("Models/backpack/backpack.obj", "instanced_g_pass", "instanced_backpack");
-
     
     for (int i = -count; i <= count; i++) {
         for (int j = -count; j <= count; j++) {
@@ -301,6 +311,7 @@ void StartingScene::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     lighting_pass_shader->setInt("light_count", temporary_light_data.size());
     lighting_pass_shader->setFloat("intensity", renderer->m_Settings.intensity);
+    lighting_pass_shader->setFloat("bloom_threshold", renderer->m_Settings.bloom_threshold);
     lighting_pass_shader->setVec3("viewPos", renderer->m_CurrentCamera->m_Position);
     // finally render quad
     renderer->SimpleQuad();
@@ -356,7 +367,7 @@ void StartingScene::Render() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
     final_shader->setInt("bloom", true);
-    final_shader->setFloat("exposure", 1.f);
+    final_shader->setFloat("exposure", renderer->m_Settings.exposure);
     renderer->SimpleQuad();
 
     renderer->GatherImGui();

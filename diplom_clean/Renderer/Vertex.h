@@ -16,4 +16,14 @@ struct BasicVertex {
     glm::vec3 m_Position;
 };
 
+struct TexturedVertex {
+    glm::vec3 m_Position;
+    glm::vec2 m_TexCoords;
+};
+
+struct ColoredVertex {
+    glm::vec3 m_Position;
+    glm::vec3 m_Color;
+};
+
 #endif // !VERTEX_STRUCT_DECL
