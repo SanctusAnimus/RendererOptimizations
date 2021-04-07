@@ -13,21 +13,23 @@
 class Model
 {
 public:
-    std::vector<Texture> textures_loaded;
     Model(const char* path)
     {
         loadModel(path);
     }
+    ~Model() {
+        meshes.clear();
+    }
     void Render(std::shared_ptr<Shader> shader);
 private:
     // model data
-    std::vector<Mesh> meshes;
+    std::vector<std::shared_ptr<Mesh>> meshes;
     std::string directory;
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+    std::shared_ptr<Mesh> processMesh(aiMesh* mesh, const aiScene* scene);
+    std::vector<std::shared_ptr<Texture>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 };
 
 #endif // !MODEL_CLASS_DECL

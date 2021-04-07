@@ -21,7 +21,7 @@ public:
 private:
     // model data
     std::shared_ptr<Shader> m_Shader;
-    std::vector<InstancedMesh> meshes;
+    std::vector<std::shared_ptr<InstancedMesh>> meshes;
     std::vector<glm::mat4> positions;
     std::string directory;
 
@@ -29,8 +29,8 @@ private:
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
-    InstancedMesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma = false);
+    std::shared_ptr<InstancedMesh> processMesh(aiMesh* mesh, const aiScene* scene);
+    std::vector<std::shared_ptr<Texture>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma = false);
 };
 
 #endif // !INSTANCEDMODEL_CLASS_DECL

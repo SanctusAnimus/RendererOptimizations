@@ -22,6 +22,7 @@ uniform sampler2D gAlbedoSpec;
 uniform int light_count;
 uniform float intensity;
 uniform float bloom_threshold;
+uniform float ambient;
 uniform vec3 viewPos;
 
 layout (location = 0) out vec4 FragColor;
@@ -37,7 +38,7 @@ void main()
     float Specular = AlbedoSpec.a;
     
     // then calculate lighting as usual
-    vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
+    vec3 lighting  = Diffuse * ambient;
     vec3 viewDir  = normalize(viewPos - FragPos);
 
     for(int i = 0; i < light_count; ++i)

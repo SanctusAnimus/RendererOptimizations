@@ -116,9 +116,6 @@
     <ClInclude Include="Renderer\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\Model\common.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -180,6 +177,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\SecondLabScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Render.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Animate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -272,6 +278,9 @@
     <None Include="Shaders\Deferred\bloom_final_vertex.glsl" />
     <None Include="Shaders\Deferred\bloom_final_fragment.glsl" />
     <None Include="imgui.ini" />
+    <None Include="Shaders\Normals\fragment.glsl" />
+    <None Include="Shaders\Normals\geometry.glsl" />
+    <None Include="Shaders\Normals\vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="old_main_part.txt" />

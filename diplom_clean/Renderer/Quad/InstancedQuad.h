@@ -8,7 +8,7 @@
 class InstancedQuad
 {
 public:
-	InstancedQuad(Texture* texture, std::shared_ptr<Shader> shader);
+	InstancedQuad(std::shared_ptr<Texture> texture, std::shared_ptr<Shader> shader);
 	void Add(glm::mat4 position);
 
 	void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection);
@@ -32,10 +32,10 @@ private:
 	};
 
 	std::shared_ptr<Shader> m_Shader;
-	Texture* m_Texture;
-	Texture* m_NormalMap = nullptr;
-	Texture* m_SpecularMap = nullptr;
-	Texture* m_HeightMap = nullptr;
+	std::shared_ptr<Texture> m_Texture;
+	std::shared_ptr<Texture> m_NormalMap = nullptr;
+	std::shared_ptr<Texture> m_SpecularMap = nullptr;
+	std::shared_ptr<Texture> m_HeightMap = nullptr;
 };
 
 #endif // !INSTANCED_QUAD_CLASS_DECL

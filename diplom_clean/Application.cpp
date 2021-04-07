@@ -26,7 +26,7 @@ void Application::Init() {
 
     stbi_set_flip_vertically_on_load(true);
 
-    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Merenkov D.M. Diplom", NULL, NULL); // glfwGetPrimaryMonitor()
+    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Lab 2-3", NULL, NULL); // glfwGetPrimaryMonitor()
     if (m_Window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -92,7 +92,7 @@ void Application::SetupCallbacks() {
 void Application::SetupScene() {
     Logger::instance().AddLog("[Application] Scene setup started...\n");
     // current_scene = std::shared_ptr<BaseScene>(new StartingScene());
-    current_scene = std::shared_ptr<BaseScene>(new Lab1Scene());
+    current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
     current_scene->Setup();
     Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
@@ -111,8 +111,9 @@ void Application::Run() {
 
     current_scene->Render();
 
-    logger->Draw("Log");
+    // logger->Draw("Log");
 
+    /*
     if (ImGui::Begin("Scene selection")) {
         const char* items[] = { "Lab 1", "Lab 2-3", "Lab 4"};
         static int item_current = 0;
@@ -138,6 +139,7 @@ void Application::Run() {
     else {
         ImGui::End();
     }
+    */
 
     imgui_layer->End(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
 

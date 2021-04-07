@@ -1,12 +1,24 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> m_Textures)
 {
+    std::cout << "[Mesh] creating mesh" << std::endl;
     this->vertices = vertices;
     this->indices = indices;
     this->m_Textures = m_Textures;
 
     setupMesh();
+}
+
+Mesh::~Mesh() {
+    std::cout << "[Mesh] destroying" << std::endl;
+    vertices.clear();
+    indices.clear();
+    m_Textures.clear();
+
+    glDeleteVertexArrays(1, &VAO);
+    unsigned int arrays[2] = { VBO, EBO };
+    glDeleteBuffers(2, arrays);
 }
 
 void Mesh::setupMesh()
@@ -54,7 +66,7 @@ void Mesh::Render(std::shared_ptr<Shader> shader)
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = m_Textures[i].type;
+        std::string name = m_Textures[i]->type;
         if (name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
         else if (name == "texture_specular")
@@ -63,7 +75,7 @@ void Mesh::Render(std::shared_ptr<Shader> shader)
             number = std::to_string(normalNr++);
 
         shader->setInt((name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, m_Textures[i]->id);
     }
     glActiveTexture(GL_TEXTURE0);
 

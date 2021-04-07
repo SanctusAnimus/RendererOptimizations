@@ -8,7 +8,7 @@ uniform float time;
 
 void main(void)
 {
-    vec2 scrolled_coords = vec2(teTexCoord.x + time / 2.0, teTexCoord.y + time / 2.0);
+    vec2 scrolled_coords = vec2(teTexCoord.x - time / 2.0, teTexCoord.y - time / 2.0);
     color = texture(image, scrolled_coords);
     // color = vec4(1.0);
 }

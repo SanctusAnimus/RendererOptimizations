@@ -14,9 +14,9 @@ public:
     // mesh data
     std::vector<Vertex>       vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture>      m_Textures;
+    std::vector<std::shared_ptr<Texture>> m_Textures;
 
-    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> m_Textures, unsigned int ABO);
+    InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> m_Textures, unsigned int ABO);
     ~InstancedMesh();
 
     void Bind(std::shared_ptr<Shader> shader);

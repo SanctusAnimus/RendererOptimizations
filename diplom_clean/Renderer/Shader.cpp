@@ -2,6 +2,7 @@
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, std::string name) : m_Name(name)
 {
+    std::cout << "[Shader] Creating shader type VS + FS" << std::endl;
     auto vertex = addShader(vertexPath, GL_VERTEX_SHADER, "VERTEX");
     auto fragment = addShader(fragmentPath, GL_FRAGMENT_SHADER, "FRAGMENT");
 
@@ -13,11 +14,13 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, std::string nam
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+    std::cout << "[Shader] ...Done" << std::endl;
 }
 
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath, std::string name) : m_Name(name)
 {
+    std::cout << "[Shader] Creating shader type VS + FS + GS" << std::endl;
     auto vertex = addShader(vertexPath, GL_VERTEX_SHADER, "VERTEX");
     auto fragment = addShader(fragmentPath, GL_FRAGMENT_SHADER, "FRAGMENT");
     auto geometry = addShader(geometryPath, GL_GEOMETRY_SHADER, "GEOMETRY");
@@ -32,11 +35,13 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     glDeleteShader(geometry);
+    std::cout << "[Shader] ...Done" << std::endl;
 }
 
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* tessControlPath, const char* tessEvalPath, std::string name) : m_Name(name)
 {
+    std::cout << "[Shader] Creating shader type VS + FS + TCS + TES" << std::endl;
     auto vertex = addShader(vertexPath, GL_VERTEX_SHADER, "VERTEX");
     auto fragment = addShader(fragmentPath, GL_FRAGMENT_SHADER, "FRAGMENT");
     auto tess_control = addShader(tessControlPath, GL_TESS_CONTROL_SHADER, "TESS_CONTROL");
@@ -57,6 +62,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* tes
     glDeleteShader(tess_control);
     glDeleteShader(tess_eval);
     // glDeleteShader(geometry);
+    std::cout << "[Shader] ...Done" << std::endl;
 }
 
 void Shader::use() 
@@ -132,7 +138,7 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type)
         if (!success)
         {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n[END]" << std::endl;
+            std::cout << "\tERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n[END]" << std::endl;
         }
     }
     else
@@ -141,14 +147,14 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type)
         if (!success)
         {
             glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n[END]" << std::endl;
+            std::cout << "\tERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n[END]" << std::endl;
         }
     }
 }
 
 
 unsigned int Shader::addShader(const char* path, unsigned int shader_type, const std::string& s_type_repr) {
-    std::cout << "adding shader type " << s_type_repr << " from " << path << std::endl;
+    std::cout << "\tadding shader type <" << s_type_repr << "> from " << path << std::endl;
     // 1. retrieve the vertex/fragment source code from filePath
     std::string shader_code;
     std::ifstream shader_file;
@@ -168,7 +174,7 @@ unsigned int Shader::addShader(const char* path, unsigned int shader_type, const
     }
     catch (std::ifstream::failure& e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ:" << s_type_repr << std::endl;
+        std::cout << "\tERROR::SHADER::FILE_NOT_SUCCESFULLY_READ:" << s_type_repr << std::endl;
     }
     const char* c_shader_code = shader_code.c_str();
     // 2. compile shaders

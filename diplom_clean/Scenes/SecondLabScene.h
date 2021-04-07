@@ -19,7 +19,6 @@ class Lab2Scene : public BaseScene
 {
 public:
 	Lab2Scene() : cube("Models/Crate/Crate1.obj") {
-
 	}
 
 	~Lab2Scene();

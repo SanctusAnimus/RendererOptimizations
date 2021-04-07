@@ -173,6 +173,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Components\Animate.h" />
+    <ClInclude Include="Components\Render.h" />
+    <ClInclude Include="Components\Transform.h" />
     <ClInclude Include="ImGui\ImGuiLogger.h" />
     <ClInclude Include="Scenes\SecondLabScene.h" />
     <ClInclude Include="Renderer\Camera\ArcballCamera.h" />
@@ -193,7 +196,6 @@
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Shader.h" />
     <ClInclude Include="Scenes\FirstLabScene.h" />
-    <ClInclude Include="Shaders\Model\common.h" />
     <ClInclude Include="Scenes\StartingScene.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Renderer\Texture.h" />
@@ -217,6 +219,9 @@
     <None Include="Shaders\Deferred\lighting_pass_vertex.glsl" />
     <None Include="Shaders\Deferred\light_box_fragment.glsl" />
     <None Include="Shaders\Deferred\light_box_vertex.glsl" />
+    <None Include="Shaders\Normals\fragment.glsl" />
+    <None Include="Shaders\Normals\geometry.glsl" />
+    <None Include="Shaders\Normals\vertex.glsl" />
     <None Include="Shaders\Screen\hdr_vertex.glsl" />
     <None Include="Shaders\Screen\hrd_fragment.glsl" />
     <None Include="Shaders\Screen\screen_fragment.glsl" />

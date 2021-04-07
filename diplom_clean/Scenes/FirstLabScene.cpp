@@ -197,7 +197,7 @@ void Lab1Scene::BuildMesh() {
     int current_vert_line = 0;
     for (auto& vert : source_verts) {
         for (int i = 0; i < 360; i += source_step) {
-            int next_vert_line = source_verts.size() > (current_vert_line + 1) ? current_vert_line + 1 : current_vert_line;
+            int next_vert_line = source_verts.size() > (current_vert_line + 1) ? current_vert_line + 1 : current_vert_line - 1;
 
             glm::vec3 rotated_vert = glm::rotate(vert, glm::radians(float(i)), {0.f, 0.f, 1.f});
             glm::vec3 next_rotated_vert = glm::rotate(vert, glm::radians(float(i + source_step)), { 0.f, 0.f, 1.f });

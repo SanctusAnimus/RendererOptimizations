@@ -26,7 +26,7 @@ static void GLGetErrors() {
 }
 
 
-InstancedQuad::InstancedQuad(Texture* texture, std::shared_ptr<Shader> shader): m_Texture(texture), m_Shader(shader) {
+InstancedQuad::InstancedQuad(std::shared_ptr<Texture> texture, std::shared_ptr<Shader> shader): m_Texture(texture), m_Shader(shader) {
     glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
     glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
     glm::vec3 pos3(1.0f, -1.0f, 0.0f);

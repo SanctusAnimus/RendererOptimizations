@@ -24,5 +24,5 @@ void GenerateLine()
 
 void main()
 {
-    GenerateLine(); // first vertex normal
+    GenerateLine();
 }  

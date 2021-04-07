@@ -26,7 +26,7 @@ std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string sh
     Logger::instance().AddLog("[Renderer] New quad created.\n");
 
 	auto shader = this->GetShader(shader_name);
-	Texture* texture = this->GetTexture(texture_name);
+	auto texture = this->GetTexture(texture_name);
 
     auto quad = std::shared_ptr<Quad>(new Quad(texture, shader));
     m_Objects.push_back(quad);
@@ -38,7 +38,7 @@ std::shared_ptr<InstancedQuad> Renderer::NewInstancedQuad(std::string texture_na
     Logger::instance().AddLog("[Renderer] New instanced quad with name %s\n", instance_name.c_str());
 
     auto shader = this->GetShader(shader_name);
-    Texture* texture = this->GetTexture(texture_name);
+    auto texture = this->GetTexture(texture_name);
 
     auto instance = std::shared_ptr<InstancedQuad>(new InstancedQuad(texture, shader));
     auto ret = m_InstancedQuad.insert({instance_name, instance});
@@ -48,7 +48,6 @@ std::shared_ptr<InstancedQuad> Renderer::NewInstancedQuad(std::string texture_na
 
 std::shared_ptr<InstancedModel> Renderer::NewInstancedModel(std::string model_path, std::string shader_name, std::string instance_name) {
     Logger::instance().AddLog("[Renderer] New instanced model with name %s\n", instance_name.c_str());
-
 
     auto shader = this->GetShader(shader_name);
 
@@ -151,14 +150,14 @@ void Renderer::GatherImGui() {
 
     if (ImGui::CollapsingHeader("Textures", &open)) {
         for (const auto& [name, tex] : m_Textures) {
-            ImGui::Image((ImTextureID)tex.id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
+            ImGui::Image((ImTextureID)tex->id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::SameLine();
 
             ImGui::BeginGroup();
-            ImGui::Text("Texture: <%d> %s", tex.id, name.c_str());
-            ImGui::Text("Type: %s", get_texture_type_repr(tex.gl_type));
-            ImGui::Text("Usage: %s", tex.type.c_str());
-            ImGui::Text("Path: %s", tex.path.c_str());
+            ImGui::Text("Texture: <%d> %s", tex->id, name.c_str());
+            ImGui::Text("Type: %s", get_texture_type_repr(tex->gl_type));
+            ImGui::Text("Usage: %s", tex->type.c_str());
+            ImGui::Text("Path: %s", tex->path.c_str());
             ImGui::EndGroup();
             ImGui::Separator();
         }
@@ -210,12 +209,15 @@ void Renderer::GatherImGui() {
     if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
         ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1, 1.0, 100.f);
         ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05, 0.01, 100.f);
-        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.1, 1.0, 100.f);
+        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.05, 0.01, 100.f);
         ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2, 0.2, 20.f);
+        ImGui::DragFloat("Light Ambient", &m_Settings.ambient, 0.05, 0.01, 1.f);
         ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05, 0.0, 2.f);
         ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05, 0.0, 2.f);
+        ImGui::DragInt("Bloom Radius", &m_Settings.bloom_radius, 2.0, 2.0, 30.f);
         ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05, 0.01, 5.f);
         ImGui::Checkbox("Wireframe", &m_Settings.wireframe);
+        ImGui::Checkbox("Skybox", &m_Settings.skybox);
     }
 
     ImGui::End();
@@ -230,10 +232,10 @@ std::shared_ptr<Shader> Renderer::GetShader(std::string shader_name) {
 	return nullptr;
 }
 
-Texture* Renderer::GetTexture(std::string texture_name) {
+std::shared_ptr<Texture> Renderer::GetTexture(std::string texture_name) {
 	auto val = m_Textures.find(texture_name);
 	if (val != m_Textures.end()) {
-		return &val->second;
+		return val->second;
 	}
     Logger::instance().AddLog("[Renderer] Texture lookup failed, desired name: %s\n", texture_name.c_str());
 	return nullptr;
@@ -249,25 +251,27 @@ std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_n
 }
 
 
-Texture* Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool gamma) {
+std::shared_ptr<Texture> Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool gamma) {
     auto [tex_id, tex_type] = m_loadTexture(file_path, true, gamma);
 
-    auto ret = m_Textures.insert(
-        { 
+    auto texture = std::shared_ptr<Texture>(new Texture(tex_id, tex_type, type, file_path));
+
+    auto ret = m_Textures.insert({ 
         name, 
-            {
-            tex_id, tex_type, type, file_path
-            }
-        }
-    );
+        texture
+    });
+
     if (!ret.second) {
         Logger::instance().AddLog("[Renderer] Texture map insertion failed, name: %s\n", name.c_str());
     }
-    return &ret.first->second;
+    else {
+        Logger::instance().AddLog("[Renderer] Created texture <%d> with name: %s\n", tex_id, name.c_str());
+    }
+    return texture;
 }
 
 
-std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip, const bool gamma)
+std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const bool flip, const bool gamma)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -368,7 +372,7 @@ void Renderer::SimpleQuad() {
 }
 
 
-unsigned int loadCubemap(std::vector<std::string> faces)
+std::shared_ptr<Texture> Renderer::NewCubemap(std::vector<std::string> faces)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -401,16 +405,24 @@ unsigned int loadCubemap(std::vector<std::string> faces)
 
     stbi_set_flip_vertically_on_load(true);
 
-    return textureID;
+    auto cubemap_tex = std::shared_ptr<Texture>(new Texture(textureID, GL_TEXTURE_CUBE_MAP, "cubemap", ""));
+
+    m_Textures.insert({ 
+        "cubemap", 
+        cubemap_tex
+    });
+
+    return cubemap_tex;
 }
 
 
 void Renderer::Reset() {
-    std::cout << "RENDERER RESET CALLED" << std::endl;
+    std::cout << "[Renderer] Reset" << std::endl;
     m_CurrentCamera = nullptr;
     m_Cameras.clear();
     m_InstancedQuad.clear();
     m_InstancedModels.clear();
+    m_Objects.clear();
 
     m_Shaders.clear();
     m_Textures.clear();

@@ -25,7 +25,7 @@ void Lab2Scene::Setup() {
     logger->AddLog("[Lab1] setup started...\n");
     Renderer* renderer = &Renderer::instance();
 
-    translation = glm::vec3(0.f);
+    translation = glm::vec3(-2.5f, -1.5f, 0.f);
 
     auto arcball_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "arcball_camera", Camera::Camera_Type::ARCBALL);
     renderer->SetActiveCamera("arcball_camera");
@@ -59,7 +59,7 @@ void Lab2Scene::Setup() {
     // define shape here
 
     this->BuildMesh();
-    this->BuildGrid();
+    // this->BuildGrid();
     this->BuildAxes();
     this->BuildPlot();
 
@@ -207,6 +207,7 @@ void Lab2Scene::Render() {
     points_shader->setMat4("view", camera->GetViewMatrix());
     points_shader->setMat4("projection", projection);
 
+    /*
     for (auto& vertex : mesh) {
         model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
@@ -216,6 +217,7 @@ void Lab2Scene::Render() {
         points_shader->setVec3("lightColor", glm::vec3(0.8f, 0.6f, 0.f));
         cube.Render(points_shader);
     }
+    */
 
     if (ImGui::Begin("Controls")) [[likely]] {
         ImGui::DragFloat3("Translation", &translation.x, 0.1, -100.f, 100.f);
@@ -265,6 +267,27 @@ void Lab2Scene::Render() {
 void Lab2Scene::BuildMesh() {
     mesh.clear();
 
+    mesh.push_back(BasicVertex{ glm::vec3(2.f,  0.6f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(2.5f,  0.f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(2.5f,  0.f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(3.f,  0.6f, 1.f), });
+                    
+    mesh.push_back(BasicVertex{ glm::vec3(1.f,  1.f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(2.f,  1.f, 1.5f), });
+    mesh.push_back(BasicVertex{ glm::vec3(3.f,  1.f, 1.5f), });
+    mesh.push_back(BasicVertex{ glm::vec3(4.f,  1.f, 1.f), });
+                                               
+    mesh.push_back(BasicVertex{ glm::vec3(0.3f,  2.f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(2.f,  2.f, 2.1f), });
+    mesh.push_back(BasicVertex{ glm::vec3(3.f,  2.f, 2.1f), });
+    mesh.push_back(BasicVertex{ glm::vec3(4.7f,  2.f, 1.f), });
+                                             
+    mesh.push_back(BasicVertex{ glm::vec3(0.3f,  3.f, 1.f), });
+    mesh.push_back(BasicVertex{ glm::vec3(2.f,  3.f, 2.5f), });
+    mesh.push_back(BasicVertex{ glm::vec3(3.f,  3.f, 2.5f), });
+    mesh.push_back(BasicVertex{ glm::vec3(4.7f,  3.f, 1.f), });
+
+    /*
     mesh.push_back(BasicVertex{glm::vec3(-2.0f, -0.1f, 1.0f), });
     mesh.push_back(BasicVertex{glm::vec3(-1.0f, -2.0f, 1.0f), });
     mesh.push_back(BasicVertex{glm::vec3(1.0f, -2.0f, 1.0f),  });
@@ -284,6 +307,7 @@ void Lab2Scene::BuildMesh() {
     mesh.push_back(BasicVertex{glm::vec3(-1.f, 2.0f, 1.0f),   });
     mesh.push_back(BasicVertex{glm::vec3(1.0f, 2.0f, 1.0f),   });
     mesh.push_back(BasicVertex{glm::vec3(2.0f, 2.0f, 1.0f),   });
+    */
 }
 
 
@@ -331,11 +355,13 @@ double deg2rad(double deg) {
 }
 
 float GetParametricX(float& R, float& r, float& t, float& k) {
-    return r * (k - 1.) * cos(deg2rad(t)) + r * cos(deg2rad((k - 1.) * t));
+    // return r * (k - 1.) * cos(deg2rad(t)) + r * cos(deg2rad((k - 1.) * t));
+    return r * (k + 1.) * (cos(deg2rad(t)) -  cos(deg2rad((k + 1.) * t)) / (k + 1.f));
 }
 
 float GetParametricY(float& R, float& r, float& t, float& k) {
-    return r * (k - 1.) * sin(deg2rad(t)) - r * sin(deg2rad((k - 1.) * t));
+    // return r * (k - 1.) * sin(deg2rad(t)) - r * sin(deg2rad((k - 1.) * t));
+    return r * (k + 1.) * (sin(deg2rad(t)) - sin(deg2rad((k + 1.) * t)) / (k + 1.f));
 }
 
 
@@ -348,8 +374,8 @@ void Lab2Scene::BuildPlot() {
     plot.clear();
     for (float t = m_Tmin; t < m_Tmax; t += m_Tstep) {
 
-        float new_x = GetParametricX(R, r, t, k) / R;
-        float new_y = GetParametricY(R, r, t, k) / R;
+        float new_x = GetParametricX(R, r, t, k) / (R * 2);
+        float new_y = GetParametricY(R, r, t, k) / (R * 2);
 
         plot.push_back(ColoredVertex{
             glm::vec3(new_x, new_y, 0.f), // pos

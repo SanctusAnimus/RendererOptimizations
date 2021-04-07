@@ -3,7 +3,7 @@
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
-Quad::Quad(Texture* texture, std::shared_ptr<Shader> shader) : Renderable(texture, shader) {
+Quad::Quad(std::shared_ptr<Texture> texture, std::shared_ptr<Shader> shader) : Renderable(texture, shader) {
     // positions
     glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
     glm::vec3 pos2(-1.0f, -1.0f, 0.0f);

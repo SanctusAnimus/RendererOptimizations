@@ -23,7 +23,7 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath, const char* tessControlPath, const char* tessEvalPath, std::string name);
 
     ~Shader() {
-        std::cout << "shader destructor called " << ID << " | " << m_Name << std::endl;
+        std::cout << "[Shader] destroying " << ID << " | " << m_Name << std::endl;
         glDeleteProgram(ID);
     }
 

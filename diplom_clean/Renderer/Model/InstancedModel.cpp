@@ -12,11 +12,14 @@ bool IsVisible(glm::vec4 worldspace, float radius) {
 }
 
 InstancedModel::InstancedModel(const char* path, std::shared_ptr<Shader> shader) : m_Shader(shader) {
+    std::cout << "[Instanced Model] creation started!" << std::endl;
 	loadModel(path);
+    std::cout << "[Instanced Model] creation finished!" << std::endl;
+    std::cout << meshes.size() << std::endl;
 }
 
 InstancedModel::~InstancedModel() {
-    std::cout << "Instanced Model destructor called!" << std::endl;
+    std::cout << "[Instanced Model] destructor called!" << std::endl;
     meshes.clear();
     positions.clear();
     glDeleteBuffers(1, &m_ABO);
@@ -59,22 +62,17 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
 
     for (auto& mesh : meshes) {
         // mesh.UpdateModels(&visible_positions[0], visible_count);
-        mesh.Bind(m_Shader);
+        mesh->Bind(m_Shader);
         glDrawElementsInstanced(
-            GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0, visible_count
+            GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0, visible_count
         );
-        mesh.Unbind();
+        mesh->Unbind();
     }
 }
 
 void InstancedModel::Add(glm::mat4 position)
 {
     positions.push_back(position);
-    auto ptr = &positions[0];
-    int size = positions.size();
-    for (auto& mesh : meshes) {
-        mesh.UpdateModels(&positions[0], size);
-    }
 }
 
 void InstancedModel::loadModel(std::string path)
@@ -114,12 +112,12 @@ void InstancedModel::UI_Description() {
     ImGui::Text("Controlled entities: %d", positions.size());
 }
 
-InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
+std::shared_ptr<InstancedMesh> InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     // data to fill
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> m_Textures;
+    std::vector<std::shared_ptr<Texture>> m_Textures;
 
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -182,41 +180,42 @@ InstancedMesh InstancedModel::processMesh(aiMesh* mesh, const aiScene* scene)
     // normal: texture_normalN
 
     // 1. diffuse maps
-    std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    using texture_vector = std::vector<std::shared_ptr<Texture>>;
+    texture_vector diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     m_Textures.insert(m_Textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. specular maps
-    std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    texture_vector specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
     m_Textures.insert(m_Textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    texture_vector normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     m_Textures.insert(m_Textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
-    std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    texture_vector heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     m_Textures.insert(m_Textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    return InstancedMesh(vertices, indices, m_Textures, m_ABO);
+    return std::shared_ptr<InstancedMesh>(new InstancedMesh(vertices, indices, m_Textures, m_ABO));
 }
 
 
-std::vector<Texture> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma)
+std::vector<std::shared_ptr<Texture>> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma)
 {
     Renderer* renderer = &Renderer::instance();
-    std::vector<Texture> m_Textures;
+    std::vector<std::shared_ptr<Texture>> m_Textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
         mat->GetTexture(type, i, &str);
         std::string path = str.C_Str();
         
-        Texture* texture = renderer->GetTexture(path);
+        std::shared_ptr<Texture> texture = renderer->GetTexture(path);
         if (texture == nullptr) {
             texture = renderer->NewTexture(
                 (directory + '/' + path).c_str(), path, typeName, gamma
             );
             std::cout << "Loaded texture " << typeName << " with path " << texture->path << std::endl;
         }
-        m_Textures.push_back(*texture);
+        m_Textures.push_back(texture);
     }
     return m_Textures;
 }
