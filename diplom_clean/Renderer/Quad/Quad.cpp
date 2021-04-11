@@ -10,10 +10,18 @@ Quad::Quad(std::shared_ptr<Texture> texture, std::shared_ptr<Shader> shader) : R
     glm::vec3 pos3(1.0f, -1.0f, 0.0f);
     glm::vec3 pos4(1.0f, 1.0f, 0.0f);
     // texture coordinates
-    glm::vec2 uv1(0.0f, 100.0f);
+    
+    glm::vec2 uv1(0.0f, 10.0f);
     glm::vec2 uv2(0.0f, 0.0f);
-    glm::vec2 uv3(100.0f, 0.0f);
-    glm::vec2 uv4(100.0f, 100.0f);
+    glm::vec2 uv3(10.0f, 0.0f);
+    glm::vec2 uv4(10.0f, 10.0f);
+    /*
+    
+    glm::vec2 uv1(0.0f, 1.0f);
+    glm::vec2 uv2(0.0f, 0.0f);
+    glm::vec2 uv3(1.0f, 0.0f);
+    glm::vec2 uv4(1.0f, 1.0f);
+    */
     // normal vector
     glm::vec3 nm(0.0f, 0.0f, 1.0f);
 
@@ -133,17 +141,19 @@ void Quad::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projecti
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    for (int i = 0; i <= tex_num; i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 
 void Quad::UI_Description() {
+    ImGui::PushID(m_VAO);
     ImGui::TextUnformatted("Quad");
     ImGui::DragFloat3("Translation", &m_Transform.x, 0.5f, -100.f, 100.f);
     ImGui::InputFloat3("Scale", &m_Scale.x, 0.1f);
     ImGui::InputFloat3("Rotation M", &m_Rotation.x, 0.1f);
     ImGui::InputFloat("Radians", &m_RotationRadians, 0.0, 1.f, 0.05f);
+    ImGui::PopID();
 }

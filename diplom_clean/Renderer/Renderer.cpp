@@ -1,10 +1,17 @@
 #include "Renderer.h"
 #include "../stb_image.h"
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <imgui/imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "../ImGui/ImGuiLogger.h"
 
-std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip = true, const bool gamma = false);
+#include "../Components/Render.h"
+#include "../Components/Transform.h"
+
+std::tuple<unsigned int, unsigned int> m_loadTexture(char const* path, const bool flip = true, const bool compress = true);
 static bool open = true;
 
 namespace Rendering {
@@ -16,11 +23,24 @@ Renderer::Renderer() {
     std::cout << "Renderer created" << std::endl;
 }
 
-/*
-Model& Renderer::NewModel() {
-
+static void GLClearErrors() {
+    while (glGetError() != GL_NO_ERROR);
 }
-*/
+
+static void GLGetErrors() {
+    while (GLenum error = glGetError()) {
+
+        const char* description;
+        int code = glfwGetError(&description);
+        if (description != nullptr) {
+            std::cout << "[OpenGL] error " << error << " " << description << std::endl;
+        }
+        else {
+            std::cout << "[OpenGL] error " << error << " with empty message" << std::endl;
+        }
+
+    }
+}
 
 std::shared_ptr<Quad> Renderer::NewQuad(std::string texture_name, std::string shader_name) {
     Logger::instance().AddLog("[Renderer] New quad created.\n");
@@ -81,8 +101,15 @@ std::shared_ptr<Shader> Renderer::NewShader(const char* vertex_path, const char*
     return shader;
 }
 
+std::shared_ptr<InstancedModel> Renderer::GetInstancedModel(std::string instance_name) {
+    auto inst_ctrl = m_InstancedModels.find(instance_name);
+    if (inst_ctrl != m_InstancedModels.end()) {
+        return inst_ctrl->second;
+    }
+}
 
-void Renderer::Render() {
+
+void Renderer::Render(entt::registry& registry) {
     glm::mat4 projection = glm::perspective(
         glm::radians(m_CurrentCamera->m_Zoom), 
         (float)Rendering::SCREEN_WIDTH / (float)Rendering::SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -90,6 +117,7 @@ void Renderer::Render() {
 	for (auto& obj : m_Objects) {
 		obj->Render(m_CurrentCamera, projection);
 	}
+
     for (auto const& [name, instance] : m_InstancedQuad) {
         instance->Render(m_CurrentCamera, projection);
     }
@@ -101,34 +129,6 @@ void Renderer::Render() {
 
 void Renderer::GatherImGui() {
     // frame counter
-    {
-        const float DISTANCE = 10.0f;
-        static int corner = 1;
-        ImGuiIO& io = ImGui::GetIO();
-        if (corner != -1)
-        {
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImVec2 work_area_pos = viewport->GetWorkPos();   // Instead of using viewport->Pos we use GetWorkPos() to avoid menu bars, if any!
-            ImVec2 work_area_size = viewport->GetWorkSize();
-            ImVec2 window_pos = ImVec2((corner & 1) ? (work_area_pos.x + work_area_size.x - DISTANCE) : (work_area_pos.x + DISTANCE), (corner & 2) ? (work_area_pos.y + work_area_size.y - DISTANCE) : (work_area_pos.y + DISTANCE));
-            ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
-            ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-            ImGui::SetNextWindowViewport(viewport->ID);
-        }
-        ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-        if (corner != -1)
-            window_flags |= ImGuiWindowFlags_NoMove;
-        if (ImGui::Begin("Renderer: Frame Stats", &open, window_flags))
-        {
-            ImGui::Text("Frame Time: %.2f ms", this->m_FrameTime * 1000.0);
-            ImGui::Text("FPS: %.1f", 1.0 / this->m_FrameTime);
-            ImGui::Text("Visible Light: %d", this->m_VisibleLights);
-            ImGui::Text("Visible Models: %d", this->m_VisibleModels);
-        }
-        ImGui::End();
-    }
-
     if (!ImGui::Begin("Renderer", &open))
     {
         ImGui::End();
@@ -200,10 +200,6 @@ void Renderer::GatherImGui() {
             instance_controller->UI_Description();
             ImGui::Separator();
         }
-        for (const auto& [name, instance_controller] : m_InstancedModels) {
-            instance_controller->UI_Description();
-            ImGui::Separator();
-        }
     }
 
     if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
@@ -212,6 +208,7 @@ void Renderer::GatherImGui() {
         ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.05, 0.01, 100.f);
         ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2, 0.2, 20.f);
         ImGui::DragFloat("Light Ambient", &m_Settings.ambient, 0.05, 0.01, 1.f);
+        ImGui::DragFloat("Light Spread", &m_Settings.light_spread, 1.f, 0.5f, 100.f);
         ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05, 0.0, 2.f);
         ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05, 0.0, 2.f);
         ImGui::DragInt("Bloom Radius", &m_Settings.bloom_radius, 2.0, 2.0, 30.f);
@@ -251,8 +248,8 @@ std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_n
 }
 
 
-std::shared_ptr<Texture> Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool gamma) {
-    auto [tex_id, tex_type] = m_loadTexture(file_path, true, gamma);
+std::shared_ptr<Texture> Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool compress) {
+    auto [tex_id, tex_type] = m_loadTexture(file_path, true, compress);
 
     auto texture = std::shared_ptr<Texture>(new Texture(tex_id, tex_type, type, file_path));
 
@@ -271,7 +268,7 @@ std::shared_ptr<Texture> Renderer::NewTexture(const char* file_path, std::string
 }
 
 
-std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const bool flip, const bool gamma)
+std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const bool flip, const bool compress)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -279,19 +276,30 @@ std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const boo
     stbi_set_flip_vertically_on_load(flip);
 
     GLenum format;
+    GLint internal_format;
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data)
     {
-        if (nrComponents == 1)
+        if (nrComponents == 1) {
             format = GL_RED;
-        else if (nrComponents == 3)
-            format = gamma ? GL_SRGB : GL_RGB;
-        else if (nrComponents == 4)
-            format = gamma ? GL_SRGB_ALPHA : GL_RGBA;
+            internal_format = GL_RED;
+        }
+        else if (nrComponents == 3) {
+            format = GL_RGB;
+            internal_format = compress ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGB;
+        }
+        else if (nrComponents == 4) {
+            format = GL_RGBA;
+            internal_format = compress ? GL_COMPRESSED_RGBA_S3TC_DXT3_EXT : GL_RGBA;
+        }
 
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+        // glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, sizeof(data) * width * height, data);
+        GLClearErrors();
+        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        GLGetErrors();
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

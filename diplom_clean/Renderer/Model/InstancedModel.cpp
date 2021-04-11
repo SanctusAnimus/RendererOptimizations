@@ -5,6 +5,7 @@
 
 
 bool IsVisible(glm::vec4 worldspace, float radius) {
+    return true;
     return abs(worldspace.x) < worldspace.w + radius &&
         abs(worldspace.y) < worldspace.w + radius &&
         radius < worldspace.z &&
@@ -53,6 +54,7 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
             visible_positions.push_back(mat);
         }
     }
+
     int visible_count = visible_positions.size();
     renderer->m_VisibleModels = visible_count;
 
@@ -70,9 +72,17 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
     }
 }
 
-void InstancedModel::Add(glm::mat4 position)
+int InstancedModel::Add(glm::mat4 position)
 {
+    int index = positions.size();
     positions.push_back(position);
+    return index;
+}
+
+void InstancedModel::Update(int index, glm::mat4 new_model) {
+    if (index < positions.size()) {
+        positions[index] = new_model;
+    }
 }
 
 void InstancedModel::loadModel(std::string path)
@@ -187,9 +197,15 @@ std::shared_ptr<InstancedMesh> InstancedModel::processMesh(aiMesh* mesh, const a
     texture_vector specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
     m_Textures.insert(m_Textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    texture_vector normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    texture_vector normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", false);
     m_Textures.insert(m_Textures.end(), normalMaps.begin(), normalMaps.end());
-    // 4. height maps
+    // 4. emission maps
+    texture_vector emission_maps = loadMaterialTextures(material, aiTextureType_EMISSION_COLOR, "texture_emission", false);
+    m_Textures.insert(m_Textures.end(), emission_maps.begin(), emission_maps.end());
+    // 4. emission maps
+    texture_vector emissive_maps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_emissive", false);
+    m_Textures.insert(m_Textures.end(), emissive_maps.begin(), emissive_maps.end());
+    // 5. height maps
     texture_vector heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     m_Textures.insert(m_Textures.end(), heightMaps.begin(), heightMaps.end());
 
@@ -198,7 +214,7 @@ std::shared_ptr<InstancedMesh> InstancedModel::processMesh(aiMesh* mesh, const a
 }
 
 
-std::vector<std::shared_ptr<Texture>> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma)
+std::vector<std::shared_ptr<Texture>> InstancedModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool compress)
 {
     Renderer* renderer = &Renderer::instance();
     std::vector<std::shared_ptr<Texture>> m_Textures;
@@ -211,7 +227,7 @@ std::vector<std::shared_ptr<Texture>> InstancedModel::loadMaterialTextures(aiMat
         std::shared_ptr<Texture> texture = renderer->GetTexture(path);
         if (texture == nullptr) {
             texture = renderer->NewTexture(
-                (directory + '/' + path).c_str(), path, typeName, gamma
+                (directory + '/' + path).c_str(), path, typeName, compress
             );
             std::cout << "Loaded texture " << typeName << " with path " << texture->path << std::endl;
         }

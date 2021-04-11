@@ -2,7 +2,7 @@
 
 InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> m_Textures, unsigned int ABO)
 {
-    std::cout << "[Instanced Mesh] created" << std::endl;
+    // std::cout << "[Instanced Mesh] created" << std::endl;
     this->vertices = vertices;
     this->indices = indices;
     this->m_Textures = m_Textures;
@@ -12,7 +12,7 @@ InstancedMesh::InstancedMesh(std::vector<Vertex> vertices, std::vector<unsigned 
 
 
 InstancedMesh::~InstancedMesh() {
-    std::cout << "[Instanced Mesh] deleted" << std::endl;
+    // std::cout << "[Instanced Mesh] deleted" << std::endl;
     vertices.clear();
     indices.clear();
     m_Textures.clear();

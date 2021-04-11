@@ -174,9 +174,22 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Components\Animate.h" />
+    <ClInclude Include="Components\Light.h" />
     <ClInclude Include="Components\Render.h" />
     <ClInclude Include="Components\Transform.h" />
     <ClInclude Include="ImGui\ImGuiLogger.h" />
+    <ClInclude Include="Renderer\Buffers\Framebuffer.h" />
+    <ClInclude Include="Renderer\Buffers\GLTexture.h" />
+    <ClInclude Include="Renderer\Buffers\Renderbuffer.h" />
+    <ClInclude Include="Renderer\Buffers\VertexArray.h" />
+    <ClInclude Include="Renderer\Buffers\VertexBuffer.h" />
+    <ClInclude Include="Scenes\CompressionScene.h" />
+    <ClInclude Include="Scenes\DeferredScene.h" />
+    <ClInclude Include="Scenes\FrustumScene.h" />
+    <ClInclude Include="Scenes\InstancingScene.h" />
+    <ClInclude Include="Scenes\LoadableScene.h" />
+    <ClInclude Include="Scenes\RawScene.h" />
+    <ClInclude Include="Scenes\scene_util.h" />
     <ClInclude Include="Scenes\SecondLabScene.h" />
     <ClInclude Include="Renderer\Camera\ArcballCamera.h" />
     <ClInclude Include="Renderer\Camera\BaseCamera.h" />
@@ -213,6 +226,7 @@
     <None Include="Shaders\Deferred\blur_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_instanced_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment.glsl" />
+    <None Include="Shaders\Deferred\geometry_pass_fragment_simple.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_geometry.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_vertex.glsl" />
     <None Include="Shaders\Deferred\lighting_pass_fragment.glsl" />

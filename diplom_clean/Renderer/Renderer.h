@@ -4,8 +4,8 @@
 
 #include <vector>
 #include <map>
+#include <entt/entt.hpp>
 
-#include "LightData.h"
 #include "Texture.h"
 #include "Model/Model.h"
 #include "Model/InstancedModel.h"
@@ -19,12 +19,12 @@ namespace Rendering {
 	extern unsigned int SCREEN_WIDTH;
 	extern unsigned int SCREEN_HEIGHT;
 
-
 	struct RenderSettings {
 		float light_constant = 1.0;
-		float light_linear = 0.7;
-		float light_quadratic = 2.1;
-		float intensity = 1.0;
+		float light_linear = 0.4;
+		float light_quadratic = 1.7;
+		float light_spread = 10.f;
+		float intensity = 2.0;
 
 		float ambient = 0.1;
 		float bloom_threshold = 1.0;
@@ -56,7 +56,7 @@ public:
 	// VS + FS + TCS + TES + GS
 	std::shared_ptr<Shader> NewShader(const char* vertex_path, const char* fragment_path, const char* tess_control_path, const char* tess_eval_path, std::string name);
 
-	std::shared_ptr<Texture> NewTexture(const char* file_path, std::string name, std::string type, const bool gamma = false);
+	std::shared_ptr<Texture> NewTexture(const char* file_path, std::string name, std::string type, const bool compress = true);
 	std::shared_ptr<Texture> NewCubemap(std::vector<std::string> faces);
 
 	std::shared_ptr<Camera::BaseCamera> NewCamera(glm::vec3 coords, std::string camera_name, Camera::Camera_Type cam_type);
@@ -64,6 +64,7 @@ public:
 	std::shared_ptr<Shader> GetShader(std::string shader_name);
 	std::shared_ptr<Texture> GetTexture(std::string texture_name);
 	std::shared_ptr<InstancedQuad> GetInstancedQuad(std::string instance_name);
+	std::shared_ptr<InstancedModel> GetInstancedModel(std::string instance_name);
 
 	static Renderer& instance()
 	{
@@ -73,7 +74,7 @@ public:
 
 	void Reset();
 
-	void Render();
+	void Render(entt::registry& registry);
 	void GatherImGui();
 
 	void SimpleQuad();

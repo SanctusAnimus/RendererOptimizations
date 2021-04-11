@@ -15,7 +15,9 @@ class InstancedModel
 public:
     InstancedModel(const char* path, std::shared_ptr<Shader> shader);
     ~InstancedModel();
-    void Add(glm::mat4 position);
+    int Add(glm::mat4 position);
+    void Set() {};
+    void Update(int index, glm::mat4 new_model);
     void Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projection);
     void UI_Description();
 private:
@@ -30,7 +32,7 @@ private:
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     std::shared_ptr<InstancedMesh> processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<std::shared_ptr<Texture>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool gamma = false);
+    std::vector<std::shared_ptr<Texture>> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, const bool compress = true);
 };
 
 #endif // !INSTANCEDMODEL_CLASS_DECL

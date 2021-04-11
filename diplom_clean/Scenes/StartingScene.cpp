@@ -5,34 +5,27 @@
 #include <imgui/imgui.h>
 #include <random>
 
+#include "scene_util.h"
+#include "../Components/Transform.h"
+#include "../Components/Light.h"
+#include "../Components/Render.h"
+#include <entt/entt.hpp>
+
 #include "../Renderer/Renderer.h"
 #include "../ImGui/ImGuiLogger.h"
 
 
-static void GLClearErrors() {
-    while (glGetError() != GL_NO_ERROR);
+bool IsVisibleFrom(glm::vec4 position, glm::mat4& mvp, float radius) {
+    glm::vec4 worldspace = mvp * position;
+    return abs(worldspace.x) < worldspace.w + radius &&
+        abs(worldspace.y) < worldspace.w + radius &&
+        0 < worldspace.z &&
+        abs(worldspace.z) < worldspace.w + radius;
 }
 
-static void GLGetErrors() {
-    while (GLenum error = glGetError()) {
-
-        const char* description;
-        int code = glfwGetError(&description);
-        if (description != nullptr) {
-            std::cout << "[OpenGL] error " << error << " " << description << std::endl;
-        }
-        else {
-            std::cout << "[OpenGL] error " << error << " with empty message" << std::endl;
-        }
-
-    }
-}
 
 StartingScene::~StartingScene() {
-    unsigned int geometry_textures[3] = {m_GeometryAlbedoSpec, m_GeometryNormals, m_GeometryPosition};
-
     glDeleteFramebuffers(1, &m_GeometryFBO);
-    glDeleteTextures(3, geometry_textures);
 
     glDeleteFramebuffers(2, m_PingPongFBO);
     glDeleteTextures(2, m_PingPongColorBuffers);
@@ -44,28 +37,49 @@ StartingScene::~StartingScene() {
 
 }
 
+entt::entity StartingScene::AddEntity() {
+    return registry.create();
+}
+
+void StartingScene::RemoveEntity(entt::entity& ent) {
+    registry.destroy(ent);
+}
 
 void StartingScene::Setup() {
     Logger* logger = &Logger::instance();
-    // std::cout << "Scene setup called" << std::endl;
     logger->AddLog("[Scene] setup started...\n");
     Renderer* renderer = &Renderer::instance();
+
+    if (glfwExtensionSupported("GL_EXT_texture_compression_s3tc"))
+    {
+        std::cout << "s3tc compression available" << std::endl;
+    }
+    else {
+        std::cout << "s3tc compression NOT AVAILABLE" << std::endl;
+    }
 
     auto arcball_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "arcball_camera", Camera::Camera_Type::ARCBALL);
     auto fly_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "fly_camera", Camera::Camera_Type::FLYCAM);
     renderer->SetActiveCamera("arcball_camera");
 
-    renderer->NewTexture(
+    auto brick_tex = renderer->NewTexture(
         "Resource/textures/brickwall.jpg", "brickwall", "texture_diffuse"
-        // "Resource/textures/plate/Metal_Plate_Sci-Fi_002_basecolor.jpg", "brickwall", "texture_diffuse"
     );
     renderer->NewTexture(
-        "Resource/textures/brickwall_normal.jpg", "brickwall_normal", "texture_normal"
-        // "Resource/textures/plate/Metal_Plate_Sci-Fi_002_normal.jpg", "brickwall_normal", "texture_normal"
+        "Resource/textures/brickwall_normal.jpg", "brickwall_normal", "texture_normal", false
     );
     renderer->NewTexture(
         "Resource/textures/brickwall_specular.jpg", "brickwall_specular", "texture_specular"
     );
+
+    auto gatari_tex = renderer->NewTexture(
+        "Resource/textures/blending_transparent_window.png", "gatari", "texture_diffuse"
+    );
+    simple_tex_shader = renderer->NewShader(
+        "Shaders/Basic/vertex.glsl", "Shaders/Basic/fragment.glsl", "simple_shader");
+
+    simple_g_shader = renderer->NewShader(
+        "Shaders/Deferred/geometry_pass_vertex.glsl", "Shaders/Deferred/geometry_pass_fragment_simple.glsl", "geometry_simple_shader");
 
     geometry_pass_shader = renderer->NewShader(
         "Shaders/Deferred/geometry_pass_vertex.glsl", "Shaders/Deferred/geometry_pass_fragment.glsl", "g_pass");
@@ -82,29 +96,28 @@ void StartingScene::Setup() {
     skybox_shader = renderer->NewShader(
         "Shaders/Basic/skybox_vertex.glsl", "Shaders/Basic/skybox_fragment.glsl", "skybox_shader");
 
-    /*
-    auto instanced_brick_wall = renderer->NewInstancedQuad("brickwall", "instanced_g_pass", "brickwall_instanced");
-    instanced_brick_wall->SetNormalMap("brickwall_normal");
-    instanced_brick_wall->SetSpecularMap("brickwall_specular");
-    */
     auto quad = renderer->NewQuad("brickwall", "g_pass");
     quad->SetNormalMap("brickwall_normal");
-    // quad->SetSpecularMap("brickwall_specular");
     quad->SetRotation(-90, { 1.f, 0.f, 0.f });
     quad->SetScale({ 20.f, 20.f, 20.0 });
     quad->SetTransform({ 0.f, -1.f, 0.f });
 
-    auto instanced_backpack = renderer->NewInstancedModel("Models/backpack/backpack.obj", "instanced_g_pass", "instanced_backpack");
-    
+    m_Quad = std::shared_ptr<Quad>(new Quad(gatari_tex, simple_tex_shader));
+    m_Quad->SetNormalMap("brickwall_normal");
+    m_Quad->SetRotation(0.f, { 1.f, 0.f, 0.f });
+    m_Quad->SetScale({ 20.f, 4.f, 4.f });
+    m_Quad->SetTransform({ 0.f, 2.f, 1.f });
+
+    registry.on_construct<InstancedModelComponent>().connect<&StartingScene::AddInstancedModel>(this);
+    registry.on_update<TransformComponent>().connect<&StartingScene::UpdateInstancedModel>(this);
+
     for (int i = -m_ModelsStride; i <= m_ModelsStride; i++) {
         for (int j = -m_ModelsStride; j <= m_ModelsStride; j++) {
-            glm::vec3 translate(i * 5.f, 1.f, j * 5.f);
-            glm::mat4 model(1.f);
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, translate);
-            model = glm::scale(model, glm::vec3(0.7f));
 
-            instanced_backpack->Add(model);
+            auto entity = AddEntity();
+            registry.emplace<TransformComponent>(entity, glm::vec3{ i * 5.f, 1.f, j * 5.f }, glm::vec3{ 0.7f , 0.7f , 0.7f });
+            // registry.emplace<InstancedModelComponent>(entity, "Models/backpack/backpack.obj", "instanced_g_pass");
+            registry.emplace<InstancedModelComponent>(entity, "Models/backpack/backpack.obj", "instanced_g_pass");
         }
     }
 
@@ -116,92 +129,40 @@ void StartingScene::Setup() {
         "Resource/skybox/elyvisions/tron_bk.png",
         "Resource/skybox/elyvisions/tron_ft.png",
     });
+
+    int SCR_WIDTH = Rendering::SCREEN_WIDTH;
+    int SCR_HEIGHT = Rendering::SCREEN_HEIGHT;
     
     glGenFramebuffers(1, &m_GeometryFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_GeometryFBO);
     
-    int SCR_WIDTH = Rendering::SCREEN_WIDTH;
-    int SCR_HEIGHT = Rendering::SCREEN_HEIGHT;
+    m_GeometryPosition.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT0);
+    m_GeometryNormals.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT1);
+    m_GeometryAlbedoSpec.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT2);
 
-    // position color buffer
-    glGenTextures(1, &m_GeometryPosition);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_GeometryPosition, 0);
-    // normal color buffer
-    glGenTextures(1, &m_GeometryNormals);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryNormals);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_GeometryNormals, 0);
-    // color + specular color buffer
-    glGenTextures(1, &m_GeometryAlbedoSpec);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryAlbedoSpec);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_GeometryAlbedoSpec, 0);
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
-    // create and attach depth buffer (renderbuffer)
+
     glGenRenderbuffers(1, &m_DepthRBO);
     glBindRenderbuffer(GL_RENDERBUFFER, m_DepthRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthRBO);
-    // finally check if framebuffer is complete
+
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-   
-    std::mt19937 gen;
-    std::uniform_real_distribution<> urd_red(0.5, 1.f);
-    std::uniform_real_distribution<> urd_green(0.2, 0.8);
-    std::uniform_real_distribution<> urd_blue(0.1, 0.5);
 
-    for (unsigned int i = 0; i < LIGHT_COUNT_MAX; i++)
-    {
-        Rendering::LightData m_light_data;
-        // calculate slightly random offsets
-        float xPos = ((rand() % 100) / 100.0) * spread - spread / 2.0;
-        float yPos = ((rand() % 100) / 100.0) * 5.0 - 1.0;
-        float zPos = ((rand() % 100) / 100.0) * spread - spread / 2.0;
-        m_light_data.Position = glm::vec4(xPos, yPos, zPos, 1.0);
-        // lightPositions.push_back(glm::vec3(xPos, yPos, zPos));
-        // also calculate random color
-        float rColor = urd_red(gen);
-        float gColor = urd_green(gen);
-        float bColor = urd_blue(gen);
-        // lightColors.push_back(glm::vec3(rColor, gColor, bColor));
-        m_light_data.Color = glm::vec4(rColor, gColor, bColor, 1.0);
 
-        const float constant = renderer->m_Settings.light_constant;
-        const float linear = renderer->m_Settings.light_linear;
-        const float quadratic = renderer->m_Settings.light_quadratic;
-        const float intensity = renderer->m_Settings.intensity;
-        m_light_data.Linear = linear;
-        m_light_data.Quadratic = quadratic;
-        const float maxBrightness = std::fmaxf(std::fmaxf(m_light_data.Color.r, m_light_data.Color.g), m_light_data.Color.b);
-        float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - ((256.0f / 5.f) * maxBrightness)))) / (2.0f * quadratic);
-        m_light_data.Radius = intensity * radius;
-        m_LightData.push_back({ m_light_data });
-    }
-    lighting_pass_shader->use();
-
+    glGenFramebuffers(1, &m_FinalFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_FinalFBO);
+    m_FinalTexture.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
     glGenBuffers(1, &m_SSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SSBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Rendering::LightData) * m_LightData.size(), &m_LightData[0], GL_STREAM_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_SSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    lighting_pass_shader->setInt("gPosition", 0);
-    lighting_pass_shader->setInt("gNormal", 1);
-    lighting_pass_shader->setInt("gAlbedoSpec", 2);
-
-    std::cout << "...Done" << std::endl;
 
     glGenFramebuffers(1, &m_hdrFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_hdrFBO);
@@ -252,63 +213,25 @@ void StartingScene::Setup() {
             std::cout << "Framebuffer not complete!" << std::endl;
     }
 
+    lighting_pass_shader->use();
+    lighting_pass_shader->setInt("gPosition", 0);
+    lighting_pass_shader->setInt("gNormal", 1);
+    lighting_pass_shader->setInt("gAlbedoSpec", 2);
     blur_shader->use();
     blur_shader->setInt("image", 0);
     final_shader->use();
     final_shader->setInt("scene", 0);
     final_shader->setInt("bloomBlur", 1);
 
+    BuildLightData();
 
-    float skyboxVertices[] = {
-        // positions          
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
-    };
+    auto skyboxVertices= GetSkyboxVerts();
 
     glGenVertexArrays(1, &m_SkyboxVAO);
     glGenBuffers(1, &m_SkyboxVBO);
     glBindVertexArray(m_SkyboxVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_SkyboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * skyboxVertices.size(), &skyboxVertices[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
@@ -318,12 +241,11 @@ void StartingScene::Setup() {
 void StartingScene::Render() {
     Renderer* renderer = &Renderer::instance();
     Logger* logger = &Logger::instance();
+    static bool keep_open = true;
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // GLClearErrors();
-    // 1. geometry pass: render scene's geometry/color data into gbuffer
-    // -----------------------------------------------------------------
+
     glBindFramebuffer(GL_FRAMEBUFFER, m_GeometryFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -338,36 +260,51 @@ void StartingScene::Render() {
     glm::mat4 mvp = projection * view * model;
 
     std::vector<Rendering::LightData> temporary_light_data;
-    this->RegenerateLights();
-    for (auto& light : m_LightData) {
-        if (light.IsVisibleFrom(mvp)) {
-            temporary_light_data.push_back(light.GetData());
+
+    auto light_view = registry.view<const Rendering::LightData>();
+    for(const auto& [entity, light_data]: light_view.each()) {
+        if (IsVisibleFrom(light_data.Position, mvp, light_data.Radius)) {
+            temporary_light_data.push_back(light_data);
         }
     }
+    this->RegenerateLights(temporary_light_data);
 
     renderer->m_VisibleLights = temporary_light_data.size();
-
     geometry_pass_shader->use();
     geometry_pass_shader->setMat4("projection", projection);
     geometry_pass_shader->setMat4("view", view);
     glPolygonMode(GL_FRONT_AND_BACK, renderer->m_Settings.wireframe ? GL_LINE : GL_FILL);
-    renderer->Render();
+    renderer->Render(registry);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    simple_g_shader->use();
+    simple_g_shader->setMat4("projection", projection);
+    simple_g_shader->setMat4("view", view);
+
+    for (unsigned int i = 0; i < temporary_light_data.size(); i++)
+    {
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(temporary_light_data[i].Position));
+        model = glm::scale(model, glm::vec3(0.055f));
+        simple_g_shader->setMat4("model", model);
+        simple_g_shader->setVec3("lightColor", glm::vec3(temporary_light_data[i].Color));
+        m_CubeModel.Render(simple_g_shader);
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    m_Quad->Render(renderer->m_CurrentCamera, projection);
+    glDisable(GL_BLEND);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.
-    // -----------------------------------------------------------------------------------------------------------------------
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     lighting_pass_shader->use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryPosition);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryNormals);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, m_GeometryAlbedoSpec);
-    // send light relevant uniforms
-    // MOVED OUT FROM LOOP
+
+    m_GeometryPosition.Use(GL_TEXTURE0);
+    m_GeometryNormals.Use(GL_TEXTURE1);
+    m_GeometryAlbedoSpec.Use(GL_TEXTURE2);
+
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SSBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Rendering::LightData) * temporary_light_data.size(), &temporary_light_data[0], GL_STREAM_DRAW);
 
@@ -378,37 +315,22 @@ void StartingScene::Render() {
     lighting_pass_shader->setFloat("bloom_threshold", renderer->m_Settings.bloom_threshold);
     lighting_pass_shader->setFloat("ambient", renderer->m_Settings.ambient);
     lighting_pass_shader->setVec3("viewPos", renderer->m_CurrentCamera->m_Position);
-    // finally render quad
     renderer->SimpleQuad();
-
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer
-    // ----------------------------------------------------------------------------------
+    m_GeometryPosition.Reset(GL_TEXTURE0);
+    m_GeometryNormals.Reset(GL_TEXTURE1);
+    m_GeometryAlbedoSpec.Reset(GL_TEXTURE2);
+
+    // copy depth to correcly handle light source cubes
+    /*
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GeometryFBO);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_hdrFBO); // write to default framebuffer
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_hdrFBO);
     glBlitFramebuffer(0, 0, 
         Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, 0, 0, 
         Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, m_hdrFBO);
-
-    // 3. render lights on top of scene
-    // --------------------------------
-    light_box_shader->use();
-    light_box_shader->setMat4("projection", projection);
-    light_box_shader->setMat4("view", view);
-
-    for (unsigned int i = 0; i < temporary_light_data.size(); i++)
-    {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(temporary_light_data[i].Position));
-        model = glm::scale(model, glm::vec3(0.055f));
-        light_box_shader->setMat4("model", model);
-        light_box_shader->setVec3("lightColor", glm::vec3(temporary_light_data[i].Color));
-        m_CubeModel.Render(light_box_shader);
-        // renderCube();
-    }
-
+    */
     if (renderer->m_Settings.skybox) {
         glDepthFunc(GL_LEQUAL);
         glBindVertexArray(m_SkyboxVAO);
@@ -431,7 +353,6 @@ void StartingScene::Render() {
     for (unsigned int i = 0; i < renderer->m_Settings.bloom_radius; i++)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongFBO[horizontal]);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         blur_shader->setInt("horizontal", horizontal);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, first_iteration ? m_hdrColorBuffers[1] : m_PingPongColorBuffers[!horizontal]);
@@ -442,6 +363,7 @@ void StartingScene::Render() {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, m_FinalFBO);
     final_shader->use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_hdrColorBuffers[0]);
@@ -451,60 +373,229 @@ void StartingScene::Render() {
     final_shader->setFloat("exposure", renderer->m_Settings.exposure);
     renderer->SimpleQuad();
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    Dockspace();
+
+    if (ImGui::Begin("Main Window", &keep_open)) {
+        ImVec2 avail_size = ImGui::GetContentRegionAvail();
+        ImVec2 size(avail_size.x, avail_size.x * 9.0 / 16.0);
+        ImGui::Image((ImTextureID)m_FinalTexture.m_Id, size, ImVec2(-1, 1), ImVec2(0, 0));
+
+        active = ImGui::IsItemHovered();
+
+        PerfCounter();
+
+        ImGui::End();
+    }
+
     renderer->GatherImGui();
 
-    // ImGui::ShowDemoWindow();
-
     if (ImGui::Begin("Buffer View")) {
-        const auto size = ImVec2(Rendering::SCREEN_WIDTH / 5.0, Rendering::SCREEN_HEIGHT / 5.0);
-        // ImGui::Image((ImTextureID)gPosition, size, ImVec2(-1, 1), ImVec2(0, 0));
-        // ImGui::Image((ImTextureID)gNormal, size, ImVec2(-1, 1), ImVec2(0, 0));
-        ImGui::Image((ImTextureID)m_GeometryAlbedoSpec, size, ImVec2(-1, 1), ImVec2(0, 0));
+        ImVec2 avail_size = ImGui::GetContentRegionAvail();
+        ImVec2 size(avail_size.x, avail_size.x * 9.0 / 16.0);
+        ImGui::Image((ImTextureID)m_GeometryAlbedoSpec.m_Id, size, ImVec2(-1, 1), ImVec2(0, 0));
 
         ImGui::Image((ImTextureID)m_hdrColorBuffers[0], size, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Image((ImTextureID)m_hdrColorBuffers[1], size, ImVec2(0, 1), ImVec2(1, 0));
 
         ImGui::Image((ImTextureID)m_PingPongColorBuffers[0], size, ImVec2(0, 1), ImVec2(1, 0));
-        ImGui::End();
     }
-    else {
-        ImGui::End();
-    }
-
+    ImGui::End();
     if (ImGui::Begin("Renderer")) {
-        if (ImGui::CollapsingHeader("Light Sources")) {
-            unsigned int i = 0;
-            for (auto& light : m_LightData) {
-                ImGui::ColorEdit3((std::to_string(i) + "> Color:").c_str(), &light.data.Color[0], ImGuiColorEditFlags_Float);
-                ImGui::DragFloat3((std::to_string(i) + "> Position:").c_str(), &light.data.Position[0], 0.2f);
-                i++;
+        if (ImGui::CollapsingHeader("Instances")) {
+            int index = 0;
+            for (auto&& [entity, transform, model] : registry.view<TransformComponent, InstancedModelComponent>().each()) {
+                ImGui::PushID(index++);
+                if (ImGui::DragFloat3("Translation", &transform.translation.x, 0.1f)) {
+                    registry.patch<TransformComponent>(entity, [](auto& transform) {});
+                }
+                if (ImGui::DragFloat3("Scale", &transform.scale.x, 0.1f)) {
+                    registry.patch<TransformComponent>(entity, [](auto& transform) {});
+                }
+
+                if (ImGui::DragFloat("Radians", &transform.rotation_radians, 0.05f)) {
+                    registry.patch<TransformComponent>(entity, [](auto& transform) {});
+                }
+                if (ImGui::DragFloat3("Rotation", &transform.rotation_axis.x, 0.1f)) {
+                    registry.patch<TransformComponent>(entity, [](auto& transform) {});
+                }
+                ImGui::PopID();
                 ImGui::Separator();
             }
         }
-        ImGui::End();
     }
-    else {
-        ImGui::End();
-    }
-
-    // GLGetErrors();
+    ImGui::End();
 }
 
-void StartingScene::RegenerateLights() {
+void StartingScene::AddInstancedModel(entt::registry& registry, entt::entity entity) {
     Renderer* renderer = &Renderer::instance();
-    const float constant = renderer->m_Settings.light_constant; // note that we don't send this to the shader, we assume it is always 1.0 (in our case)
+
+    auto& transform = registry.get<TransformComponent>(entity);
+    auto& render = registry.get<InstancedModelComponent>(entity);
+
+    auto instance_ctrl = renderer->GetInstancedModel(render.m_ModelName);
+    if (instance_ctrl == nullptr) {
+        instance_ctrl = renderer->NewInstancedModel(render.m_ModelName, render.m_ShaderName, render.m_ModelName);
+    }
+    render.m_InstanceIdx = instance_ctrl->Add(transform.GetModelMatrix());
+}
+
+void StartingScene::UpdateInstancedModel(entt::registry& registry, entt::entity entity) {
+    Renderer* renderer = &Renderer::instance();
+
+    auto& transform = registry.get<TransformComponent>(entity);
+    auto render = registry.try_get<InstancedModelComponent>(entity);
+
+    if (render != nullptr && render->m_InstanceIdx != -1) {
+        auto instance_ctrl = renderer->GetInstancedModel(render->m_ModelName);
+        if (instance_ctrl != nullptr) {
+            instance_ctrl->Update(render->m_InstanceIdx, transform.GetModelMatrix());
+        }
+    }
+}
+
+void StartingScene::RegenerateLights(std::vector<Rendering::LightData>& visible_lights) {
+    Renderer* renderer = &Renderer::instance();
+    const float constant = renderer->m_Settings.light_constant;
     const float linear = renderer->m_Settings.light_linear;
     const float quadratic = renderer->m_Settings.light_quadratic;
     const float intensity = renderer->m_Settings.intensity;
 
+    for (auto& light : visible_lights) {
 
-    for (auto& light : m_LightData) {
-
-        light.data.Linear = linear;
-        light.data.Quadratic = quadratic;
-        const float maxBrightness = std::fmaxf(std::fmaxf(light.data.Color.r, light.data.Color.g), light.data.Color.b);
+        light.Linear = linear;
+        light.Quadratic = quadratic;
+        const float maxBrightness = std::fmaxf(std::fmaxf(light.Color.r, light.Color.g), light.Color.b);
         float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - ((256.0f / 5.f) * maxBrightness)))) / (2.0f * quadratic);
-        light.data.Radius = radius * intensity;
+        light.Radius = radius * intensity;
+    }
+}
+
+
+void StartingScene::Dockspace() {
+    static bool p_open = true;
+    static bool opt_fullscreen_persistant = true;
+    bool opt_fullscreen = opt_fullscreen_persistant;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    if (opt_fullscreen)
+    {
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->GetWorkPos());
+        ImGui::SetNextWindowSize(viewport->GetWorkSize());
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
 
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        window_flags |= ImGuiWindowFlags_NoBackground;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+    ImGui::PopStyleVar();
+
+    if (opt_fullscreen)
+        ImGui::PopStyleVar(2);
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+    ImGui::End();
+}
+
+
+void StartingScene::PerfCounter() {
+    const float DISTANCE = 10.0f;
+    static bool open = true;
+    static int corner = 1;
+
+    Renderer* renderer = &Renderer::instance();
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (corner != -1)
+    {
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImVec2 work_area_pos = ImGui::GetWindowPos();   // Instead of using viewport->Pos we use GetWorkPos() to avoid menu bars, if any!
+        ImVec2 work_area_size = ImGui::GetWindowSize();
+
+        ImVec2 window_pos = ImVec2(
+            (corner & 1) ? (work_area_pos.x + work_area_size.x) : (work_area_pos.x + DISTANCE), 
+            (corner & 2) ? (work_area_pos.y + work_area_size.y - DISTANCE) : (work_area_pos.y + DISTANCE * 2.f)
+        );
+        ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
+        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowViewport(viewport->ID);
+    }
+    ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    if (corner != -1)
+        window_flags |= ImGuiWindowFlags_NoMove;
+    if (ImGui::Begin("Renderer: Frame Stats", &open, window_flags))
+    {
+        ImGui::Text("Frame Time: %.2f ms", renderer->m_FrameTime * 1000.0);
+        ImGui::Text("FPS: %.1f", 1.0 / renderer->m_FrameTime);
+        ImGui::Text("Visible Light: %d", renderer->m_VisibleLights);
+        ImGui::Text("Visible Models: %d", renderer->m_VisibleModels);
+    }
+    ImGui::End();
+}
+
+
+void StartingScene::BuildLightData() {
+    Renderer* renderer = &Renderer::instance();
+    Logger* logger = &Logger::instance();
+
+    auto prev_view = registry.view<Rendering::LightData>();
+    registry.destroy(prev_view.begin(), prev_view.end());
+    logger->AddLog("[Scene] Rebuilt light registry, new size: %d", registry.size());
+
+    std::mt19937 gen;
+    std::uniform_real_distribution<> urd_red(0.5, 1.f);
+    std::uniform_real_distribution<> urd_green(0.2, 0.8);
+    std::uniform_real_distribution<> urd_blue(0.1, 0.5);
+
+    std::uniform_real_distribution<> urd_pos_x(-spread, spread);
+    std::uniform_real_distribution<> urd_pos_y(-0.8f, 4.f);
+    std::uniform_real_distribution<> urd_pos_z(-spread, spread);
+
+    const float constant = renderer->m_Settings.light_constant;
+    const float linear = renderer->m_Settings.light_linear;
+    const float quadratic = renderer->m_Settings.light_quadratic;
+    const float intensity = renderer->m_Settings.intensity;
+
+    std::vector<entt::entity> lights;
+    lights.resize(LIGHT_COUNT_MAX);
+    registry.create(lights.begin(), lights.end());
+    std::cout << "registry size on creation" << registry.size() << std::endl;
+
+    for (auto& light : lights) {
+        auto& light_component = registry.emplace<Rendering::LightData>(light);
+
+        float xPos = urd_pos_x(gen);
+        float yPos = urd_pos_y(gen);
+        float zPos = urd_pos_z(gen);
+        light_component.Position = glm::vec4(xPos, yPos, zPos, 1.0);
+
+        float rColor = urd_red(gen);
+        float gColor = urd_green(gen);
+        float bColor = urd_blue(gen);
+
+        light_component.Color = glm::vec4(rColor, gColor, bColor, 1.0);
+        light_component.Linear = linear;
+        light_component.Quadratic = quadratic;
+        const float maxBrightness = std::fmaxf(std::fmaxf(light_component.Color.r, light_component.Color.g), light_component.Color.b);
+        float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - ((256.0f / 5.f) * maxBrightness)))) / (2.0f * quadratic);
+        light_component.Radius = intensity * radius;
+    }
 }

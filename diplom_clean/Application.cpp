@@ -91,8 +91,7 @@ void Application::SetupCallbacks() {
 
 void Application::SetupScene() {
     Logger::instance().AddLog("[Application] Scene setup started...\n");
-    // current_scene = std::shared_ptr<BaseScene>(new StartingScene());
-    current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
+    current_scene = std::shared_ptr<BaseScene>(new StartingScene());
     current_scene->Setup();
     Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
@@ -111,7 +110,7 @@ void Application::Run() {
 
     current_scene->Render();
 
-    // logger->Draw("Log");
+    logger->Draw("Log");
 
     /*
     if (ImGui::Begin("Scene selection")) {
@@ -208,9 +207,10 @@ void Application::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    if ((mouse_hold
-        || Renderer::instance().m_CurrentCameraType == Camera::Camera_Type::FLYCAM)
-        && !ImGui::IsAnyItemActive()) {
+    if (
+        (mouse_hold || Renderer::instance().m_CurrentCameraType == Camera::Camera_Type::FLYCAM)
+        && current_scene->active) 
+    {
         Renderer::instance().m_CurrentCamera->ProcessMouseMovement(xoffset, yoffset);
     }
 }
@@ -228,6 +228,6 @@ void Application::scroll_callback(GLFWwindow* window, double xoffset, double yof
     io.MouseWheelH += (float)xoffset;
     io.MouseWheel += (float)yoffset;
 
-    if (ImGui::IsAnyWindowHovered()) return;
+    if (!current_scene->active) return;
     Renderer::instance().m_CurrentCamera->ProcessMouseScroll(yoffset);
 }

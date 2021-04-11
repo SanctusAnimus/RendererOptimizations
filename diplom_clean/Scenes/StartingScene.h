@@ -4,8 +4,11 @@
 
 #include "BaseScene.h"
 #include "../Renderer/Model/Model.h"
+#include "../Renderer/Model/InstancedModel.h"
 #include "../Renderer/LightData.h"
 #include "../Renderer/LightSource.h"
+#include "../Renderer/Buffers/GLTexture.h"
+#include "../Renderer/Quad/Quad.h"
 
 // #include <entt/entt.hpp>
 
@@ -15,7 +18,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <entt/entt.hpp>
 
 class StartingScene : public BaseScene
 {
@@ -25,18 +27,26 @@ public:
 		std::cout << "Scene constructor called!" << std::endl;
 	};
 	~StartingScene();
-	void RegenerateLights();
+
+	void BuildLightData();
+	void RegenerateLights(std::vector<Rendering::LightData>& visible_lights);
+
 	void Setup() override;
 	void Render() override;
 
-	entt::entity AddEntity() {
-		return registry.create();
-	}
+	void Dockspace();
+	void PerfCounter();
+
+	void AddInstancedModel(entt::registry& registry, entt::entity entity);
+	void UpdateInstancedModel(entt::registry& registry, entt::entity entity);
+
+	entt::entity AddEntity() override;
+	void RemoveEntity(entt::entity& ent) override;
 private:
 	std::vector<LightSource> m_LightData;
 
 	unsigned int m_GeometryFBO;
-	unsigned int m_GeometryPosition, m_GeometryNormals, m_GeometryAlbedoSpec;
+	GLTexture m_GeometryPosition, m_GeometryNormals, m_GeometryAlbedoSpec;
 	unsigned int m_SSBO;
 	unsigned int m_DepthRBO;
 
@@ -48,6 +58,9 @@ private:
 	unsigned int m_SkyboxVAO;
 	unsigned int m_SkyboxVBO;
 
+	unsigned int m_FinalFBO;
+	GLTexture m_FinalTexture;
+
 	std::shared_ptr<Shader> geometry_pass_shader;
 	std::shared_ptr<Shader> instanced_gp_shader;
 	std::shared_ptr<Shader> lighting_pass_shader;
@@ -56,16 +69,18 @@ private:
 	std::shared_ptr<Shader> final_shader;
 	std::shared_ptr<Shader> skybox_shader;
 
+	std::shared_ptr<Shader> simple_tex_shader;
+	std::shared_ptr<Shader> simple_g_shader;
+
 	std::shared_ptr<Texture> skybox;
 
 	Model m_CubeModel;
+	std::shared_ptr<Quad> m_Quad;
 
 	float spread = 20.f;
 	const int LIGHT_COUNT_MAX = 256;
 
 	int m_ModelsStride = 3;
-
-	entt::registry registry;
 };
 
 #endif // !STARTINGSCENE_CLASS_DECL
