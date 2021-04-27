@@ -14,7 +14,7 @@ namespace Camera {
 
 		void SetCameraView(glm::vec3 eye, glm::vec3 lookat, glm::vec3 up);
 
-		void ProcessKeyboard(Camera_Movement direction, float deltaTime) override;
+		void ProcessKeyboard(Camera::Camera_Movement direction, float deltaTime) override;
 		void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) override;
 		void ProcessMouseScroll(float yoffset) override;
 		void UI_Description() override;

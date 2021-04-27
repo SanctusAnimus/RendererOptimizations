@@ -6,6 +6,7 @@
 
 struct GLTexture {
 	unsigned int m_Id = 0;
+    unsigned int m_SlotUsed = 0;
 
     GLTexture() {
         glGenTextures(1, &m_Id);
@@ -29,10 +30,11 @@ struct GLTexture {
     void Use(unsigned int slot) {
         glActiveTexture(slot);
         glBindTexture(GL_TEXTURE_2D, m_Id);
+        m_SlotUsed = slot;
     }
 
-    void Reset(unsigned int slot) {
-        glActiveTexture(slot);
+    void Reset() {
+        glActiveTexture(m_SlotUsed);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 

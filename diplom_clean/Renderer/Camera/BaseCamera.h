@@ -8,14 +8,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Camera {
-    enum Camera_Movement {
+    enum class Camera_Movement {
         FORWARD,
         BACKWARD,
         LEFT,
         RIGHT
     };
 
-    enum Camera_Type {
+    enum class Camera_Type {
         FLYCAM,
         ARCBALL
     };
@@ -26,9 +26,6 @@ namespace Camera {
     const float SPEED = 10.f;
     const float SENSITIVITY = 0.1f;
     const float ZOOM = 45.0f;
-
-    const unsigned int SCR_WIDTH = 1920; // 1920;
-    const unsigned int SCR_HEIGHT = 1060; // 1060;
 
 	class BaseCamera
 	{
@@ -44,7 +41,7 @@ namespace Camera {
         BaseCamera() : m_MoveSpeed(SPEED), m_MouseSensitivity(SENSITIVITY), m_Zoom(ZOOM) {};
 
         virtual glm::mat4 GetViewMatrix() { return glm::mat4(1.f); };
-        virtual void ProcessKeyboard(Camera_Movement direction, float deltaTime) {};
+        virtual void ProcessKeyboard(Camera::Camera_Movement direction, float deltaTime) {};
         virtual void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true) {};
         virtual void ProcessMouseScroll(float yoffset) {};
         virtual void UI_Description() {};

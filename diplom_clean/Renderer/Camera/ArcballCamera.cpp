@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 
 #include "ArcballCamera.h"
+#include "../Renderer.h"
 
 
 namespace Camera {
@@ -31,36 +32,40 @@ namespace Camera {
 	}
 
 	void ArcballCamera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
-
+		float velocity = m_MoveSpeed * deltaTime;
+		if (direction == Camera_Movement::FORWARD)
+			m_lookAt.z += velocity;
+		if (direction == Camera_Movement::BACKWARD)
+			m_lookAt.z -= velocity;
+		if (direction == Camera_Movement::LEFT)
+			m_lookAt.x -= velocity;
+		if (direction == Camera_Movement::RIGHT)
+			m_lookAt.x += velocity;
+		Update();
 	}
 
 	void ArcballCamera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
 		glm::vec4 position(m_Position, 1);
 		glm::vec4 pivot(m_lookAt, 1);
 
-		// step 1 : Calculate the amount of rotation given the mouse movement.
-		float deltaAngleX = (2 * M_PI / SCR_WIDTH); // a movement from left to right = 2*PI = 360 deg
-		float deltaAngleY = (M_PI / SCR_HEIGHT);  // a movement from top to bottom = PI = 180 deg
-		float xAngle = -xoffset * deltaAngleX;
-		float yAngle = yoffset * deltaAngleY;
+		float delta_angle_x = (2.f * (float)M_PI / (float)Rendering::SCREEN_WIDTH);
+		float delta_angle_y = ((float)M_PI / (float)Rendering::SCREEN_HEIGHT);
+		float angle_x = -xoffset * delta_angle_x;
+		float angle_y = yoffset * delta_angle_y;
 
-		// Extra step to handle the problem when the camera direction is the same as the up vector
 		float cosAngle = glm::dot(GetViewDir(), m_upVector);
-		if (cosAngle * sgn(deltaAngleY) > 0.99f)
-			deltaAngleY = 0;
+		if (cosAngle * sgn(delta_angle_y) > 0.99f)
+			delta_angle_y = 0;
 
-		// step 2: Rotate the camera around the pivot point on the first axis.
-		glm::mat4x4 rotationMatrixX(1.0f);
-		rotationMatrixX = glm::rotate(rotationMatrixX, xAngle, m_upVector);
-		position = (rotationMatrixX * (position - pivot)) + pivot;
+		glm::mat4x4 rotation_mat_x(1.0f);
+		rotation_mat_x = glm::rotate(rotation_mat_x, angle_x, m_upVector);
+		position = (rotation_mat_x * (position - pivot)) + pivot;
 
-		// step 3: Rotate the camera around the pivot point on the second axis.
-		glm::mat4x4 rotationMatrixY(1.0f);
-		rotationMatrixY = glm::rotate(rotationMatrixY, yAngle, GetRightVector());
-		glm::vec3 finalPosition = (rotationMatrixY * (position - pivot)) + pivot;
+		glm::mat4x4 rotation_mat_y(1.0f);
+		rotation_mat_y = glm::rotate(rotation_mat_y, angle_y, GetRightVector());
+		glm::vec3 final_position = (rotation_mat_y * (position - pivot)) + pivot;
 
-		// Update the camera view (we keep the same lookat and the same up vector)
-		SetCameraView(finalPosition, m_lookAt, m_upVector);
+		SetCameraView(final_position, m_lookAt, m_upVector);
 	}
 
 	void ArcballCamera::ProcessMouseScroll(float yoffset) {
@@ -70,12 +75,6 @@ namespace Camera {
 	}
 
 	void ArcballCamera::Update() {
-		/*
-		std::cout << "updating view matrix" <<
-			Position.x << " | " << Position.y << "|" << Position.z << "\n" <<
-			m_lookAt.x << " | " << m_lookAt.y << "|" << m_lookAt.z << "\n" <<
-			m_upVector.x << " | " << m_upVector.y << "|" << m_upVector.z << std::endl;
-		*/
 		m_viewMatrix = glm::lookAt(m_Position, m_lookAt, m_upVector);
 	}
 

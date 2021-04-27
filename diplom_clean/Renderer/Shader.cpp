@@ -174,7 +174,7 @@ unsigned int Shader::addShader(const char* path, unsigned int shader_type, const
     }
     catch (std::ifstream::failure& e)
     {
-        std::cout << "\tERROR::SHADER::FILE_NOT_SUCCESFULLY_READ:" << s_type_repr << std::endl;
+        std::cout << "\tERROR::SHADER::FILE_NOT_SUCCESFULLY_READ:" << s_type_repr << "\n\t" << e.what() << std::endl;
     }
     const char* c_shader_code = shader_code.c_str();
     // 2. compile shaders

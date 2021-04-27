@@ -20,7 +20,7 @@ struct ModelComponent {
 };
 
 struct InstancedModelComponent {
-	glm::vec3 m_Color;
+	glm::vec4 m_Color;
 	std::string m_ModelName;
 	std::string m_ShaderName;
 	int m_InstanceIdx = -1;
@@ -31,7 +31,7 @@ struct InstancedModelComponent {
 
 	}
 
-	void SetRenderColor(const glm::vec3& color) {
+	void SetRenderColor(const glm::vec4& color) {
 		m_Color = color;
 	}
 

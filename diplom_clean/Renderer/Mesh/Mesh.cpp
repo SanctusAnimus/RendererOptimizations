@@ -81,7 +81,7 @@ void Mesh::Render(std::shared_ptr<Shader> shader)
 
     // draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     for (unsigned int i = 0; i < m_Textures.size(); i++) {

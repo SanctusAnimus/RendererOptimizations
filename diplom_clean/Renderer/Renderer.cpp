@@ -20,6 +20,9 @@ namespace Rendering {
 }
 
 Renderer::Renderer() {
+    NewTexture(
+        "Resource/textures/missing.jpg", "missing", "texture_diffuse"
+    );
     std::cout << "Renderer created" << std::endl;
 }
 
@@ -71,7 +74,7 @@ std::shared_ptr<InstancedModel> Renderer::NewInstancedModel(std::string model_pa
 
     auto shader = this->GetShader(shader_name);
 
-    auto instance = std::shared_ptr<InstancedModel>(new InstancedModel(model_path.c_str(), shader));
+    auto instance = std::shared_ptr<InstancedModel>(new InstancedModel(model_path.c_str(), shader, m_Settings._compress_textures));
     auto ret = m_InstancedModels.insert({ instance_name, instance });
     return instance;
 }
@@ -106,6 +109,7 @@ std::shared_ptr<InstancedModel> Renderer::GetInstancedModel(std::string instance
     if (inst_ctrl != m_InstancedModels.end()) {
         return inst_ctrl->second;
     }
+    return nullptr;
 }
 
 
@@ -150,7 +154,7 @@ void Renderer::GatherImGui() {
 
     if (ImGui::CollapsingHeader("Textures", &open)) {
         for (const auto& [name, tex] : m_Textures) {
-            ImGui::Image((ImTextureID)tex->id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
+            ImGui::Image((ImTextureID)(uint64_t)tex->id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::SameLine();
 
             ImGui::BeginGroup();
@@ -200,19 +204,24 @@ void Renderer::GatherImGui() {
             instance_controller->UI_Description();
             ImGui::Separator();
         }
+        for (const auto& [name, instance_controller] : m_InstancedModels) {
+            instance_controller->UI_Description();
+            ImGui::Separator();
+        }
     }
 
     if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
-        ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1, 1.0, 100.f);
-        ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05, 0.01, 100.f);
-        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.05, 0.01, 100.f);
-        ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2, 0.2, 20.f);
-        ImGui::DragFloat("Light Ambient", &m_Settings.ambient, 0.05, 0.01, 1.f);
+        ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1f, 1.0f, 100.f);
+        ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05f, 0.01f, 100.f);
+        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.05f, 0.01f, 100.f);
+        ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2f, 0.2f, 20.f);
+        ImGui::DragFloat("Light Ambient", &m_Settings.ambient, 0.05f, 0.01f, 1.f);
         ImGui::DragFloat("Light Spread", &m_Settings.light_spread, 1.f, 0.5f, 100.f);
-        ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05, 0.0, 2.f);
-        ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05, 0.0, 2.f);
-        ImGui::DragInt("Bloom Radius", &m_Settings.bloom_radius, 2.0, 2.0, 30.f);
-        ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05, 0.01, 5.f);
+        ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05f, 0.0f, 2.f);
+        ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05f, 0.0f, 2.f);
+        ImGui::DragInt("Bloom Passes", &m_Settings.bloom_radius, 2, 2, 30);
+        ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05f, 0.01f, 5.f);
+        ImGui::DragInt("Light Max", &m_Settings.current_light_limits, 1, 0, 256);
         ImGui::Checkbox("Wireframe", &m_Settings.wireframe);
         ImGui::Checkbox("Skybox", &m_Settings.skybox);
     }
@@ -250,26 +259,36 @@ std::shared_ptr<InstancedQuad> Renderer::GetInstancedQuad(std::string instance_n
 
 std::shared_ptr<Texture> Renderer::NewTexture(const char* file_path, std::string name, std::string type, const bool compress) {
     auto [tex_id, tex_type] = m_loadTexture(file_path, true, compress);
+    std::cout << "new texture, " << tex_id << " | " << tex_type << std::endl;
+    std::shared_ptr<Texture> texture = nullptr;
 
-    auto texture = std::shared_ptr<Texture>(new Texture(tex_id, tex_type, type, file_path));
+    if (tex_id != 0) [[likely]] {
+        texture = std::shared_ptr<Texture>(new Texture(tex_id, tex_type, type, file_path));
 
-    auto ret = m_Textures.insert({ 
-        name, 
-        texture
-    });
+        auto ret = m_Textures.insert({
+            name,
+            texture
+            });
 
-    if (!ret.second) {
-        Logger::instance().AddLog("[Renderer] Texture map insertion failed, name: %s\n", name.c_str());
+        if (!ret.second) {
+            Logger::instance().AddLog("[Renderer] Texture map insertion failed, name: %s\n", name.c_str());
+        }
+        else [[likely]] {
+            Logger::instance().AddLog("[Renderer] Created texture <%d> with name: %s\n", tex_id, name.c_str());
+        }
     }
     else {
-        Logger::instance().AddLog("[Renderer] Created texture <%d> with name: %s\n", tex_id, name.c_str());
+        texture = GetTexture("missing");
+        Logger::instance().AddLog("[Renderer] Replaced with default missing texture");
     }
+
     return texture;
 }
 
 
 std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const bool flip, const bool compress)
 {
+    std::cout << "m_LoadTexture compress state: " << compress << std::endl;
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
@@ -293,7 +312,7 @@ std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const boo
             format = GL_RGBA;
             internal_format = compress ? GL_COMPRESSED_RGBA_S3TC_DXT3_EXT : GL_RGBA;
         }
-
+        std::cout << "m_LoadTexture formats: " << format << " | " << internal_format << std::endl;
         glBindTexture(GL_TEXTURE_2D, textureID);
 
         // glCompressedTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, sizeof(data) * width * height, data);
@@ -311,8 +330,10 @@ std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const boo
     }
     else
     {
+        std::cout << "[Renderer] Texture loading failed, path: " << path << std::endl;
         Logger::instance().AddLog("[Renderer] Texture loading failed, path: %s\n", path);
         stbi_image_free(data);
+        return { 0, 0 };
     }
     stbi_set_flip_vertically_on_load(true);
     return { textureID, format };
@@ -321,23 +342,24 @@ std::tuple<unsigned int, unsigned int> m_loadTexture(const char* path, const boo
 
 std::shared_ptr<Camera::BaseCamera> Renderer::NewCamera(glm::vec3 coords, std::string camera_name, Camera::Camera_Type cam_type) {
     switch (cam_type) {
-    case Camera::Camera_Type::FLYCAM:
-    {
-        auto fly_cam = std::shared_ptr<Camera::FlyCamera>(new Camera::FlyCamera(coords));
-        m_Cameras.insert({ camera_name, fly_cam });
-        // TODO: technically, we do want to check for insert result to ensure we don't create a new camera with the same name
-        // doesn't really matter rn since we don't have a strong need in many cameras at once
-        Logger::instance().AddLog("[Renderer] New Fly camera with name %s\n", camera_name);
-        return fly_cam;
+        case Camera::Camera_Type::FLYCAM:
+        {
+            auto fly_cam = std::shared_ptr<Camera::FlyCamera>(new Camera::FlyCamera(coords));
+            m_Cameras.insert({ camera_name, fly_cam });
+            // TODO: technically, we do want to check for insert result to ensure we don't create a new camera with the same name
+            // doesn't really matter rn since we don't have a strong need in many cameras at once
+            Logger::instance().AddLog("[Renderer] New Fly camera with name %s\n", camera_name);
+            return fly_cam;
+        }
+        case Camera::Camera_Type::ARCBALL:
+        {
+            auto arcball_cam = std::shared_ptr<Camera::ArcballCamera>(new Camera::ArcballCamera(coords));
+            m_Cameras.insert({ camera_name, arcball_cam });
+            Logger::instance().AddLog("[Renderer] New Arcball camera with name %s\n", camera_name);
+            return arcball_cam;
+        }
     }
-    case Camera::Camera_Type::ARCBALL:
-    {
-        auto arcball_cam = std::shared_ptr<Camera::ArcballCamera>(new Camera::ArcballCamera(coords));
-        m_Cameras.insert({ camera_name, arcball_cam });
-        Logger::instance().AddLog("[Renderer] New Arcball camera with name %s\n", camera_name);
-        return arcball_cam;
-    }
-    }
+    return nullptr;
 }
 
 bool Renderer::SetActiveCamera(std::string camera_name) {
@@ -434,4 +456,80 @@ void Renderer::Reset() {
 
     m_Shaders.clear();
     m_Textures.clear();
+
+    NewTexture(
+        "Resource/textures/missing.jpg", "missing", "texture_diffuse"
+    );
+}
+
+
+void Renderer::PerfCounter() {
+    static const float DISTANCE = 10.0f;
+    static bool open = true;
+    static int corner = 1;
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (corner != -1)
+    {
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImVec2 work_area_pos = ImGui::GetWindowPos();   // Instead of using viewport->Pos we use GetWorkPos() to avoid menu bars, if any!
+        ImVec2 work_area_size = ImGui::GetWindowSize();
+
+        ImVec2 window_pos = ImVec2(
+            (corner & 1) ? (work_area_pos.x + work_area_size.x) : (work_area_pos.x + DISTANCE),
+            (corner & 2) ? (work_area_pos.y + work_area_size.y - DISTANCE) : (work_area_pos.y + DISTANCE * 2.f)
+        );
+        ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
+        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+        ImGui::SetNextWindowViewport(viewport->ID);
+    }
+    ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    if (corner != -1)
+        window_flags |= ImGuiWindowFlags_NoMove;
+    if (ImGui::Begin("Renderer: Frame Stats", &open, window_flags))
+    {
+        ImGui::Text("Frame Time: %.2f ms", m_FrameTime * 1000.0);
+        ImGui::Text("FPS: %.1f", 1.0 / m_FrameTime);
+        ImGui::Text("Visible Light: %d", m_VisibleLights);
+        ImGui::Text("Visible Models: %d", m_VisibleModels);
+    }
+    ImGui::End();
+}
+
+
+void Renderer::Dockspace() {
+    static bool p_open = true;
+    static bool opt_fullscreen_persistant = true;
+    bool opt_fullscreen = opt_fullscreen_persistant;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+    if (opt_fullscreen)
+    {
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->GetWorkPos());
+        ImGui::SetNextWindowSize(viewport->GetWorkSize());
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    }
+
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        window_flags |= ImGuiWindowFlags_NoBackground;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+    ImGui::PopStyleVar();
+
+    if (opt_fullscreen)
+        ImGui::PopStyleVar(2);
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+    ImGui::End();
 }

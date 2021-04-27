@@ -60,20 +60,24 @@ void InstancedMesh::setupMesh(unsigned int ABO)
     // position matrixes
     glBindBuffer(GL_ARRAY_BUFFER, ABO);
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceTraits), (void*)0);
     glVertexAttribDivisor(5, 1);
 
     glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceTraits), (void*)(sizeof(glm::vec4)));
     glVertexAttribDivisor(6, 1);
 
     glEnableVertexAttribArray(7);
-    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceTraits), (void*)(2 * sizeof(glm::vec4)));
     glVertexAttribDivisor(7, 1);
 
     glEnableVertexAttribArray(8);
-    glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+    glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceTraits), (void*)(3 * sizeof(glm::vec4)));
     glVertexAttribDivisor(8, 1);
+
+    glEnableVertexAttribArray(9);
+    glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceTraits), (void*)(4 * sizeof(glm::vec4)));
+    glVertexAttribDivisor(9, 1);
 
     glBindVertexArray(0);
 }

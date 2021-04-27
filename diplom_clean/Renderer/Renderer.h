@@ -20,21 +20,24 @@ namespace Rendering {
 	extern unsigned int SCREEN_HEIGHT;
 
 	struct RenderSettings {
-		float light_constant = 1.0;
-		float light_linear = 0.4;
-		float light_quadratic = 1.7;
+		float light_constant = 1.0f;
+		float light_linear = 0.005f;
+		float light_quadratic = 0.06f;
 		float light_spread = 10.f;
-		float intensity = 2.0;
+		float intensity = 2.0f;
 
-		float ambient = 0.1;
-		float bloom_threshold = 1.0;
-		int bloom_radius = 10.0;
-		float exposure = 1.0;
+		float ambient = 0.1f;
+		float bloom_threshold = 1.0f;
+		int bloom_radius = 10;
+		int current_light_limits = 10;
+		float exposure = 1.0f;
 
 		bool wireframe = false;
 		bool skybox = false;
 		
-		float models_sphere_radius = 1.0;
+		float models_sphere_radius = 1.0f;
+
+		bool _compress_textures = false;
 	};
 };
 
@@ -77,6 +80,9 @@ public:
 	void Render(entt::registry& registry);
 	void GatherImGui();
 
+	void PerfCounter();  // separate to render inside main window
+	void Dockspace();
+
 	void SimpleQuad();
 
 	bool SetActiveCamera(std::string camera_name);
@@ -85,8 +91,8 @@ public:
 	Camera::Camera_Type m_CurrentCameraType;
 	float m_FrameTime = 0.1f;
 	Rendering::RenderSettings m_Settings;
-	unsigned int m_VisibleLights = 0;
-	unsigned int m_VisibleModels = 0;
+	size_t m_VisibleLights = 0;
+	size_t m_VisibleModels = 0;
 private:
 	std::vector<std::shared_ptr<Renderable>> m_Objects;
 

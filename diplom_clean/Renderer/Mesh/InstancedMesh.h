@@ -8,6 +8,13 @@
 #include "../Vertex.h"
 #include "../Shader.h"
 
+
+struct InstanceTraits {
+    glm::mat4 transform;
+    glm::vec4 color;
+};
+
+
 class InstancedMesh
 {
 public:

@@ -1,4 +1,4 @@
-#include "StartingScene.h"
+#include "FrustumScene.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -13,7 +13,7 @@
 #include "../Renderer/Renderer.h"
 #include "../ImGui/ImGuiLogger.h"
 
-StartingScene::~StartingScene() {
+FrustumScene::~FrustumScene() {
     glDeleteFramebuffers(1, &m_GeometryFBO);
 
     glDeleteFramebuffers(2, m_PingPongFBO);
@@ -26,25 +26,25 @@ StartingScene::~StartingScene() {
 
 }
 
-void StartingScene::Setup() {
+void FrustumScene::Setup() {
     Logger* logger = &Logger::instance();
     logger->AddLog("[Scene] setup started...\n");
     Renderer* renderer = &Renderer::instance();
 
-    renderer->m_Settings._compress_textures = true;
+    renderer->m_Settings._compress_textures = false;
 
     auto arcball_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "arcball_camera", Camera::Camera_Type::ARCBALL);
     auto fly_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "fly_camera", Camera::Camera_Type::FLYCAM);
     renderer->SetActiveCamera("arcball_camera");
 
     auto brick_tex = renderer->NewTexture(
-        "Resource/textures/brickwall.jpg", "brickwall", "texture_diffuse"
+        "Resource/textures/brickwall.jpg", "brickwall", "texture_diffuse", false
     );
     renderer->NewTexture(
         "Resource/textures/brickwall_normal.jpg", "brickwall_normal", "texture_normal", false
     );
     renderer->NewTexture(
-        "Resource/textures/brickwall_specular.jpg", "brickwall_specular", "texture_specular"
+        "Resource/textures/brickwall_specular.jpg", "brickwall_specular", "texture_specular", false
     );
 
     simple_tex_shader = renderer->NewShader(
@@ -74,14 +74,14 @@ void StartingScene::Setup() {
     quad->SetScale({ 20.f, 20.f, 20.0 });
     quad->SetTransform({ 0.f, -1.f, 0.f });
     quad->SetUV(
-       {0.0f, 10.0f},
-       {0.0f, 0.0f},
-       {10.0f, 0.0f},
-       {10.0f, 10.0f}
+        { 0.0f, 10.0f },
+        { 0.0f, 0.0f },
+        { 10.0f, 0.0f },
+        { 10.0f, 10.0f }
     );
 
-    m_Registry.on_construct<InstancedModelComponent>().connect<&StartingScene::AddInstancedModel>(this);
-    m_Registry.on_update<TransformComponent>().connect<&StartingScene::UpdateInstancedModel>(this);
+    m_Registry.on_construct<InstancedModelComponent>().connect<&FrustumScene::AddInstancedModel>(this);
+    m_Registry.on_update<TransformComponent>().connect<&FrustumScene::UpdateInstancedModel>(this);
 
     for (int i = -m_ModelsStride; i <= m_ModelsStride; i++) {
         for (int j = -m_ModelsStride; j <= m_ModelsStride; j++) {
@@ -103,10 +103,10 @@ void StartingScene::Setup() {
 
     int SCR_WIDTH = Rendering::SCREEN_WIDTH;
     int SCR_HEIGHT = Rendering::SCREEN_HEIGHT;
-    
+
     glGenFramebuffers(1, &m_GeometryFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_GeometryFBO);
-    
+
     m_GeometryPosition.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT0);
     m_GeometryNormals.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT1);
     m_GeometryAlbedoSpec.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT2);
@@ -128,7 +128,7 @@ void StartingScene::Setup() {
     glBindFramebuffer(GL_FRAMEBUFFER, m_FinalFBO);
     m_FinalTexture.Set(SCR_WIDTH, SCR_HEIGHT, GL_COLOR_ATTACHMENT0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     glGenBuffers(1, &m_SSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SSBO);
     std::vector<LightSource> m_LightData;
@@ -197,7 +197,7 @@ void StartingScene::Setup() {
 
     BuildLightData();
 
-    auto skyboxVertices= GetSkyboxVerts();
+    auto skyboxVertices = GetSkyboxVerts();
 
     glGenVertexArrays(1, &m_SkyboxVAO);
     glGenBuffers(1, &m_SkyboxVBO);
@@ -210,7 +210,7 @@ void StartingScene::Setup() {
     logger->AddLog("[Scene] setup finished.\n");
 }
 
-void StartingScene::Render() {
+void FrustumScene::Render() {
     Renderer* renderer = &Renderer::instance();
     Logger* logger = &Logger::instance();
     static bool keep_open = true;
@@ -250,27 +250,6 @@ void StartingScene::Render() {
         glPolygonMode(GL_FRONT_AND_BACK, renderer->m_Settings.wireframe ? GL_LINE : GL_FILL);
         renderer->Render(m_Registry);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        /*
-        simple_g_shader->use();
-        simple_g_shader->setMat4("projection", projection);
-        simple_g_shader->setMat4("view", view);
-        for (unsigned int i = 0; i < temporary_light_data.size(); i++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(temporary_light_data[i].Position));
-            model = glm::scale(model, glm::vec3(0.055f));
-            simple_g_shader->setMat4("model", model);
-            simple_g_shader->setVec3("lightColor", glm::vec3(temporary_light_data[i].Color));
-            m_CubeModel.Render(simple_g_shader);
-        }
-        */
-        /* 
-        * transparent quad rendering
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        m_Quad->Render(renderer->m_CurrentCamera, projection);
-        glDisable(GL_BLEND);
-        */
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -356,7 +335,7 @@ void StartingScene::Render() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
+
     // ImGui editor pass
     {
         renderer->Dockspace();

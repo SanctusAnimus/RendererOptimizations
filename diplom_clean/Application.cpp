@@ -1,15 +1,16 @@
 #include "Application.h"
-//#include <glad/glad.h>
-//#include <GLFW/glfw3.h>
 #include <iostream>
+#include <unordered_map>
 #include <imgui/imgui.h>
+#include <time.h>
+#include <chrono>
+#include <thread>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "Scenes/StartingScene.h"
-#include "Scenes/FirstLabScene.h"
-#include "Scenes/SecondLabScene.h"
+#include "Scenes/SceneIndex.h"
+
 #include "ImGui/ImGuiLogger.h"
 
 Application::Application() {
@@ -26,10 +27,21 @@ void Application::Init() {
 
     stbi_set_flip_vertically_on_load(true);
 
-    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Lab 2-3", NULL, NULL); // glfwGetPrimaryMonitor()
+    auto monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+    Rendering::SCREEN_WIDTH = mode->width;
+    Rendering::SCREEN_HEIGHT = mode->height;
+
+    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Merenkov D.M. Bachelors", NULL, NULL); // glfwGetPrimaryMonitor()
     if (m_Window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        std::cout << "[Application] Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return;
     }
@@ -37,7 +49,7 @@ void Application::Init() {
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cout << "[Application] Failed to initialize GLAD" << std::endl;
         return;
     }
 
@@ -45,10 +57,10 @@ void Application::Init() {
     //glEnable(GL_CULL_FACE);
 
     m_Renderer = &Renderer::instance();
-    imgui_layer = std::shared_ptr<ImGuiLayer>(new ImGuiLayer(m_Window, "core_layer"));
+    m_ImguiLayer = std::shared_ptr<ImGuiLayer>(new ImGuiLayer(m_Window, "core_layer"));
 
-    lastX = Rendering::SCREEN_WIDTH / 2.0;
-    lastY = Rendering::SCREEN_HEIGHT / 2.0;
+    m_MouseLastPosX = Rendering::SCREEN_WIDTH / 2.0f;
+    m_MouseLastPosY = Rendering::SCREEN_HEIGHT / 2.0f;
 
     WindowData window_data;
     window_data.app = this;
@@ -57,12 +69,12 @@ void Application::Init() {
 
     this->SetupCallbacks();
     this->SetupScene();
-    std::cout << "starting loop" << std::endl;
-
-
+    
+    std::cout << "[Application] starting main loop" << std::endl;
 	while(!glfwWindowShouldClose(m_Window)) {
 		this->Run();
 	}
+    std::cout << "[Application] closed main loop" << std::endl;
 
     glfwTerminate();
     return;
@@ -70,77 +82,120 @@ void Application::Init() {
 
 void Application::SetupCallbacks() {
     Logger::instance().AddLog("[Application] Callbacks setup started...\n");
+
     glfwSetFramebufferSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->framebuffer_size_callback(window, width, height);
     });
+
     glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods) {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->mouse_button_callback(window, button, action, mods);
     });
+
     glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xpos, double ypos) {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->mouse_callback(window, xpos, ypos);
     });
+
     glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xoffset, double yoffset) {
         WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
         window_data.app->scroll_callback(window, xoffset, yoffset);
     });
+
     Logger::instance().AddLog("[Application] Callbacks setup finished.\n");
 }
 
 void Application::SetupScene() {
     Logger::instance().AddLog("[Application] Scene setup started...\n");
-    current_scene = std::shared_ptr<BaseScene>(new StartingScene());
-    current_scene->Setup();
+    m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+    m_CurrentScene->Setup();
     Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
 
 void Application::Run() {
     Logger* logger = &Logger::instance();
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-    m_Renderer->m_FrameTime = deltaTime;
+    float currentFrame = static_cast<float>(glfwGetTime());
+    m_DeltaTime = currentFrame - m_LastFrame;
+    m_LastFrame = currentFrame;
+    m_Renderer->m_FrameTime = m_DeltaTime;
 
     glfwPollEvents();
     processInput();
 
-    imgui_layer->Begin();
+    m_ImguiLayer->Begin();
 
-    current_scene->Render();
+    m_CurrentScene->Render();
 
     logger->Draw("Log");
 
-    /*
     if (ImGui::Begin("Scene selection")) {
-        const char* items[] = { "Lab 1", "Lab 2-3", "Lab 4"};
-        static int item_current = 0;
-        if (ImGui::Combo("scene_selection", &item_current, items, IM_ARRAYSIZE(items))) {
-            logger->AddLog("[Application] Switching scene to %s\n", items[item_current]);
-            // TODO: this is retarded, replace with better approach
-            Renderer::instance().Reset();
-            if (items[item_current] == "Lab 1") {
-                current_scene = std::shared_ptr<BaseScene>(new Lab1Scene());
-                current_scene->Setup();
+        using options_map = std::map<std::string, std::function<void()>>;
+        // TODO: hook up actual classes
+        static options_map options = {
+            {"1. Base scene", [this]() {
+                std::cout << "base scene" << std::endl;
+                return;
+                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+                m_CurrentScene->Setup();
+            }},
+            {"2. Instancing", [this]() {
+                std::cout << "instancing" << std::endl;
+                return;
+                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+                m_CurrentScene->Setup();
+            }},
+            {"3. Deferred Shading", [this]() {
+                std::cout << "deferred" << std::endl;
+                return;
+                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+                m_CurrentScene->Setup();
+            }},
+            {"4. Frustum Culling", [this]() {
+                std::cout << "frustum" << std::endl;
+                // return;
+                // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                m_CurrentScene = std::shared_ptr<BaseScene>(new FrustumScene());
+                m_CurrentScene->Setup();
+            }},
+            {"5. Texture Compression", [this]() {
+                std::cout << "complete scene" << std::endl;
+                // return;
+                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+                m_CurrentScene->Setup();
+            }},
+            {"6. Loadable", [this]() {
+                std::cout << "loadable" << std::endl;
+                return;
+                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+                m_CurrentScene->Setup();
+            }},
+        };
+        static int item_current_idx = 0;
+        static std::string current_key = "1. Base scene";
+        if (ImGui::BeginCombo("combo 1", current_key.c_str())) {
+            int n = 0;
+            for (auto& [key, callback] : options) {
+                const bool is_selected = (item_current_idx == n);
+                if (ImGui::Selectable(key.c_str(), is_selected)) {
+                    item_current_idx = n;
+                    current_key = key;
+                    Renderer::instance().Reset();
+                    callback();
+                }
+                
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+                n++;
             }
-            else if (items[item_current] == "Lab 2-3") {
-                current_scene = std::shared_ptr<BaseScene>(new Lab2Scene());
-                current_scene->Setup();
-            }
-            else if (items[item_current] == "Lab 4") {
-                current_scene = std::shared_ptr<BaseScene>(new StartingScene());
-                current_scene->Setup();
-            }
+            ImGui::EndCombo();
         }
-        ImGui::End();
     }
-    else {
-        ImGui::End();
-    }
-    */
+    ImGui::End();
+ 
 
-    imgui_layer->End(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
+    m_ImguiLayer->End(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT);
 
     glfwSwapBuffers(m_Window);
 }
@@ -148,9 +203,9 @@ void Application::Run() {
 
 
 void Application::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    Rendering::SCREEN_WIDTH = width;
-    Rendering::SCREEN_HEIGHT = height;
-    glViewport(0, 0, width, height);
+    // Rendering::SCREEN_WIDTH = width;
+    // Rendering::SCREEN_HEIGHT = height;
+    // glViewport(0, 0, width, height);
 }
 
 void Application::processInput()
@@ -159,13 +214,15 @@ void Application::processInput()
         glfwSetWindowShouldClose(m_Window, true);
 
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::FORWARD, m_Renderer->m_FrameTime);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::Camera_Movement::FORWARD, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::BACKWARD, m_Renderer->m_FrameTime);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::Camera_Movement::BACKWARD, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::LEFT, m_Renderer->m_FrameTime);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::Camera_Movement::LEFT, m_Renderer->m_FrameTime);
     if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::RIGHT, m_Renderer->m_FrameTime);
+        m_Renderer->m_CurrentCamera->ProcessKeyboard(Camera::Camera_Movement::RIGHT, m_Renderer->m_FrameTime);
+
+    if (!m_CurrentScene->m_Active) return;
 
     if (glfwGetKey(m_Window, GLFW_KEY_3) == GLFW_PRESS) {
         if (m_Renderer->m_CurrentCameraType != Camera::Camera_Type::ARCBALL) {
@@ -194,22 +251,22 @@ void Application::processInput()
 
 void Application::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (firstMouse)
+    if (m_InitialMouseState)
     {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
+        m_MouseLastPosX = static_cast<float>(xpos);
+        m_MouseLastPosY = static_cast<float>(ypos);
+        m_InitialMouseState = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float xoffset = static_cast<float>(xpos) - m_MouseLastPosX;
+    float yoffset = m_MouseLastPosY - static_cast<float>(ypos); // reversed since y-coordinates go from bottom to top
 
-    lastX = xpos;
-    lastY = ypos;
+    m_MouseLastPosX = static_cast<float>(xpos);
+    m_MouseLastPosY = static_cast<float>(ypos);
 
     if (
-        (mouse_hold || Renderer::instance().m_CurrentCameraType == Camera::Camera_Type::FLYCAM)
-        && current_scene->active) 
+        (m_MouseHoldState && m_CurrentScene->m_Active)
+        || Renderer::instance().m_CurrentCameraType == Camera::Camera_Type::FLYCAM)
     {
         Renderer::instance().m_CurrentCamera->ProcessMouseMovement(xoffset, yoffset);
     }
@@ -217,17 +274,17 @@ void Application::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void Application::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        if (action == GLFW_PRESS) mouse_hold = true;
-        if (action == GLFW_RELEASE) mouse_hold = false;
+        if (action == GLFW_PRESS) m_MouseHoldState = true;
+        if (action == GLFW_RELEASE) m_MouseHoldState = false;
     }
 }
 
 void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseWheelH += (float)xoffset;
-    io.MouseWheel += (float)yoffset;
+    io.MouseWheelH += static_cast<float>(xoffset);
+    io.MouseWheel += static_cast<float>(yoffset);
 
-    if (!current_scene->active) return;
-    Renderer::instance().m_CurrentCamera->ProcessMouseScroll(yoffset);
+    if (!m_CurrentScene->m_Active) return;
+    Renderer::instance().m_CurrentCamera->ProcessMouseScroll(static_cast<float>(yoffset));
 }

@@ -196,7 +196,7 @@ void InstancedQuad::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4
     // glm::mat4 model(1.f);
     // this->m_Shader->setMat4("normal_model", model);
     // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, models.size());
+    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, (GLsizei)models.size());
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);

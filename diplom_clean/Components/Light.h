@@ -11,8 +11,8 @@ struct LightComponent {
 	float m_Constant = 1.0;
 
 	glm::vec3 m_Color = glm::vec3(0.8f, 0.2, 0.3);
-	float m_Linear = 0.7;
-	float m_Quadratic = 2.1;
+	float m_Linear = 0.7f;
+	float m_Quadratic = 2.1f;
 	float m_Radius = 0.f;
 	float m_Intensity = 1.f;
 

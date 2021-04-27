@@ -96,10 +96,7 @@
     <ClCompile Include="Renderer\Mesh\InstancedMesh.cpp">
       <Filter>Renderer\Model</Filter>
     </ClCompile>
-    <ClCompile Include="Scenes\FirstLabScene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scenes\SecondLabScene.cpp">
+    <ClCompile Include="Scenes\FrustumScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -173,12 +170,6 @@
     <ClInclude Include="ImGui\ImGuiLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\FirstLabScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scenes\SecondLabScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Components\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -203,9 +194,6 @@
     <ClInclude Include="Renderer\Buffers\VertexArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\scene_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Components\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -225,6 +213,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\LoadableScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\SceneIndex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -321,6 +312,7 @@
     <None Include="Shaders\Normals\geometry.glsl" />
     <None Include="Shaders\Normals\vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment_simple.glsl" />
+    <None Include="Shaders\Deferred\geometry_instanced_fragment.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="old_main_part.txt" />

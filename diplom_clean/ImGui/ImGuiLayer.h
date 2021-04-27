@@ -15,7 +15,7 @@ public:
 	~ImGuiLayer();
 
 	void Begin();
-	void End(float width, float height);
+	void End(unsigned int width, unsigned int height);
 private:
 	std::string name;
 };
