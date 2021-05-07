@@ -17,16 +17,16 @@ uniform mat4 normal_model;
 
 void main()
 {
-    vec4 worldPos = model * vec4(aPos, 1.0);
-    FragPos = worldPos.xyz; 
+    // vec4 worldPos = model * vec4(aPos, 1.0);
+    FragPos = vec3(model * vec4(aPos, 1.0)); 
     TexCoords = aTexCoords;
     
     Normal = mat3(normal_model) * aNormal;
 
-   vec3 T = normalize(vec3(model * vec4(aTangent,   0.0)));
-   vec3 B = normalize(vec3(model * vec4(aBitangent, 0.0)));
-   vec3 N = normalize(vec3(model * vec4(aNormal,    0.0)));
-   TBN = mat3(T, B, N);
+    vec3 T = normalize(vec3(model * vec4(aTangent,   0.0)));
+    vec3 B = normalize(vec3(model * vec4(aBitangent, 0.0)));
+    vec3 N = normalize(vec3(model * vec4(aNormal,    0.0)));
+    TBN = mat3(T, B, N);
 
-    gl_Position = projection * view * worldPos;
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

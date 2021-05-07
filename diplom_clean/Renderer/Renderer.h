@@ -15,21 +15,23 @@
 #include "Camera/FlyCamera.h"
 #include "Camera/ArcballCamera.h"
 
+#define U8_CAST(string) reinterpret_cast<const char*>(u8##string)
+
 namespace Rendering {
 	extern unsigned int SCREEN_WIDTH;
 	extern unsigned int SCREEN_HEIGHT;
 
 	struct RenderSettings {
 		float light_constant = 1.0f;
-		float light_linear = 0.005f;
-		float light_quadratic = 0.06f;
+		float light_linear = 0.07f;
+		float light_quadratic = 0.21f;
 		float light_spread = 10.f;
-		float intensity = 2.0f;
+		float intensity = 1.5f;
 
 		float ambient = 0.1f;
 		float bloom_threshold = 1.0f;
 		int bloom_radius = 10;
-		int current_light_limits = 10;
+		int current_light_limits = 16;
 		float exposure = 1.0f;
 
 		bool wireframe = false;

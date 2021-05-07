@@ -32,6 +32,7 @@ void FrustumScene::Setup() {
     Renderer* renderer = &Renderer::instance();
 
     renderer->m_Settings._compress_textures = false;
+    InstancedModel::_enable_frustum = true;
 
     auto arcball_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "arcball_camera", Camera::Camera_Type::ARCBALL);
     auto fly_camera = renderer->NewCamera({ 0.0f, 0.0f, 3.0f }, "fly_camera", Camera::Camera_Type::FLYCAM);
@@ -83,11 +84,11 @@ void FrustumScene::Setup() {
     m_Registry.on_construct<InstancedModelComponent>().connect<&FrustumScene::AddInstancedModel>(this);
     m_Registry.on_update<TransformComponent>().connect<&FrustumScene::UpdateInstancedModel>(this);
 
-    for (int i = -m_ModelsStride; i <= m_ModelsStride; i++) {
-        for (int j = -m_ModelsStride; j <= m_ModelsStride; j++) {
-
+    for (int i = 0; i < m_ModelsStride; i++) {
+        for (int j = 0; j < m_ModelsStride; j++) {
             auto entity = AddEntity();
-            m_Registry.emplace<TransformComponent>(entity, glm::vec3{ i * 5.f, 1.f, j * 5.f }, glm::vec3{ 0.7f , 0.7f , 0.7f });
+            m_Registry.emplace<TransformComponent>(entity,
+                glm::vec3{ i * 5.f - m_ModelsStride * 2.5f, 1.f, j * 5.f - m_ModelsStride * 2.5f }, glm::vec3{ 0.7f , 0.7f , 0.7f });
             m_Registry.emplace<InstancedModelComponent>(entity, "Models/backpack/backpack.obj", "instanced_g_pass");
         }
     }
@@ -340,7 +341,7 @@ void FrustumScene::Render() {
     {
         renderer->Dockspace();
 
-        if (ImGui::Begin("Main Window", &keep_open)) {
+        if (ImGui::Begin(U8_CAST("Головне вікно"), &keep_open)) {
             ImVec2 avail_size = ImGui::GetContentRegionAvail();
             ImVec2 size(avail_size.x, avail_size.x * 9.0f / 16.0f);
             ImGui::Image((ImTextureID)(uint64_t)m_FinalTexture.m_Id, size, ImVec2(-1, 1), ImVec2(0, 0));
@@ -354,7 +355,7 @@ void FrustumScene::Render() {
 
         renderer->GatherImGui();
 
-        if (ImGui::Begin("Buffer View")) {
+        if (ImGui::Begin(U8_CAST("Буфери"))) {
             ImVec2 avail_size = ImGui::GetContentRegionAvail();
             ImVec2 size(avail_size.x, avail_size.x * 9.0f / 16.0f);
             ImGui::Image((ImTextureID)(uint64_t)m_GeometryAlbedoSpec.m_Id, size, ImVec2(-1, 1), ImVec2(0, 0));
@@ -363,37 +364,6 @@ void FrustumScene::Render() {
             ImGui::Image((ImTextureID)(uint64_t)m_hdrColorBuffers[1], size, ImVec2(0, 1), ImVec2(1, 0));
 
             ImGui::Image((ImTextureID)(uint64_t)m_PingPongColorBuffers[0], size, ImVec2(0, 1), ImVec2(1, 0));
-        }
-        ImGui::End();
-        if (ImGui::Begin("Renderer")) {
-            if (ImGui::CollapsingHeader("Instances")) {
-                int index = 0;
-                for (auto&& [entity, transform, model] : m_Registry.view<TransformComponent, InstancedModelComponent>().each()) {
-                    ImGui::PushID(index++);
-                    if (ImGui::CollapsingHeader("Transform")) [[unlikely]] {
-                        if (ImGui::DragFloat3("Translation", &transform.translation.x, 0.1f)) [[unlikely]] {
-                            m_Registry.patch<TransformComponent>(entity, [](auto& transform) {});
-                        }
-                        if (ImGui::DragFloat3("Scale", &transform.scale.x, 0.1f)) [[unlikely]] {
-                            m_Registry.patch<TransformComponent>(entity, [](auto& transform) {});
-                        }
-
-                        if (ImGui::DragFloat("Radians", &transform.rotation_radians, 0.05f)) [[unlikely]] {
-                            m_Registry.patch<TransformComponent>(entity, [](auto& transform) {});
-                        }
-                        if (ImGui::DragFloat3("Rotation", &transform.rotation_axis.x, 0.1f)) [[unlikely]] {
-                            m_Registry.patch<TransformComponent>(entity, [](auto& transform) {});
-                        }
-                    }
-                        if (ImGui::CollapsingHeader("Model")) [[unlikely]] {
-                            ImGui::Text("Model Name: %s", model.m_ModelName.c_str());
-                            ImGui::Text("Shader Name: %s", model.m_ShaderName.c_str());
-                            ImGui::Text("Batch Index: %d", model.m_InstanceIdx);
-                        }
-                        ImGui::PopID();
-                        ImGui::Separator();
-                }
-            }
         }
         ImGui::End();
     }

@@ -38,7 +38,7 @@ void Application::Init() {
     Rendering::SCREEN_WIDTH = mode->width;
     Rendering::SCREEN_HEIGHT = mode->height;
 
-    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Merenkov D.M. Bachelors", NULL, NULL); // glfwGetPrimaryMonitor()
+    m_Window = glfwCreateWindow(Rendering::SCREEN_WIDTH, Rendering::SCREEN_HEIGHT, "Merenkov D.M. Bachelors", monitor, NULL); // glfwGetPrimaryMonitor()
     if (m_Window == NULL)
     {
         std::cout << "[Application] Failed to create GLFW window" << std::endl;
@@ -108,7 +108,7 @@ void Application::SetupCallbacks() {
 
 void Application::SetupScene() {
     Logger::instance().AddLog("[Application] Scene setup started...\n");
-    m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+    m_CurrentScene = std::shared_ptr<BaseScene>(new RawScene());
     m_CurrentScene->Setup();
     Logger::instance().AddLog("[Application] Scene setup finished.\n");
 }
@@ -127,52 +127,34 @@ void Application::Run() {
 
     m_CurrentScene->Render();
 
-    logger->Draw("Log");
+    logger->Draw(U8_CAST("Логгер"));
 
-    if (ImGui::Begin("Scene selection")) {
+    if (ImGui::Begin(U8_CAST("Вибір сцени"))) {
         using options_map = std::map<std::string, std::function<void()>>;
-        // TODO: hook up actual classes
         static options_map options = {
-            {"1. Base scene", [this]() {
-                std::cout << "base scene" << std::endl;
-                return;
-                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+            {U8_CAST("1. Базова сцена"), [this]() {
+                m_CurrentScene = std::shared_ptr<BaseScene>(new RawScene());
                 m_CurrentScene->Setup();
             }},
-            {"2. Instancing", [this]() {
-                std::cout << "instancing" << std::endl;
-                return;
-                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+            {U8_CAST("2. Групування"), [this]() {
+                m_CurrentScene = std::shared_ptr<BaseScene>(new InstancingScene());
                 m_CurrentScene->Setup();
             }},
-            {"3. Deferred Shading", [this]() {
-                std::cout << "deferred" << std::endl;
-                return;
-                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
+            {U8_CAST("3. Відкладене затінення"), [this]() {
+                m_CurrentScene = std::shared_ptr<BaseScene>(new DeferredScene());
                 m_CurrentScene->Setup();
             }},
-            {"4. Frustum Culling", [this]() {
-                std::cout << "frustum" << std::endl;
-                // return;
-                // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            {U8_CAST("4. Обрізка фрустумом"), [this]() {
                 m_CurrentScene = std::shared_ptr<BaseScene>(new FrustumScene());
                 m_CurrentScene->Setup();
             }},
-            {"5. Texture Compression", [this]() {
-                std::cout << "complete scene" << std::endl;
-                // return;
+            {U8_CAST("5. Стиснення текстур"), [this]() {
                 m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
                 m_CurrentScene->Setup();
-            }},
-            {"6. Loadable", [this]() {
-                std::cout << "loadable" << std::endl;
-                return;
-                m_CurrentScene = std::shared_ptr<BaseScene>(new StartingScene());
-                m_CurrentScene->Setup();
-            }},
+            }}
         };
         static int item_current_idx = 0;
-        static std::string current_key = "1. Base scene";
+        static std::string current_key = U8_CAST("1. Базова сцена");
         if (ImGui::BeginCombo("combo 1", current_key.c_str())) {
             int n = 0;
             for (auto& [key, callback] : options) {

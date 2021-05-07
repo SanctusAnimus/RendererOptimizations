@@ -59,11 +59,6 @@ private:
 	std::shared_ptr<Shader> simple_g_shader;
 
 	std::shared_ptr<Texture> skybox;
-
-	float spread = 20.f;
-	const int LIGHT_COUNT_MAX = 32;
-
-	int m_ModelsStride = 3;
 };
 
 #endif // !FRUSTUMSCENE_CLASS_DECL

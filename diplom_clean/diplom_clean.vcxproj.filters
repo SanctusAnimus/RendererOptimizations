@@ -99,6 +99,15 @@
     <ClCompile Include="Scenes\FrustumScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Scenes\DeferredScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\InstancingScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\RawScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer\Shader.h">
@@ -209,9 +218,6 @@
     <ClInclude Include="Scenes\FrustumScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\CompressionScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Scenes\LoadableScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -313,6 +319,8 @@
     <None Include="Shaders\Normals\vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment_simple.glsl" />
     <None Include="Shaders\Deferred\geometry_instanced_fragment.glsl" />
+    <None Include="Shaders\Deferred\geometry_instanced_fragment_2.glsl" />
+    <None Include="Shaders\Deferred\geometry_pass_fragment_2.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="old_main_part.txt" />

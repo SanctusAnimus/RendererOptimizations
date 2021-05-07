@@ -4,8 +4,6 @@
 
 #include "BaseScene.h"
 
-// #include <entt/entt.hpp>
-
 #include <vector>
 #include <string>
 
@@ -51,8 +49,6 @@ private:
 	std::shared_ptr<Shader> simple_g_shader;
 
 	std::shared_ptr<Texture> skybox;
-
-	// Model m_CubeModel;
 };
 
 #endif // !STARTINGSCENE_CLASS_DECL

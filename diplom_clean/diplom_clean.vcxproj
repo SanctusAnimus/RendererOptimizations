@@ -167,7 +167,10 @@
     <ClCompile Include="Renderer\Renderable.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Shader.cpp" />
+    <ClCompile Include="Scenes\DeferredScene.cpp" />
     <ClCompile Include="Scenes\FrustumScene.cpp" />
+    <ClCompile Include="Scenes\InstancingScene.cpp" />
+    <ClCompile Include="Scenes\RawScene.cpp" />
     <ClCompile Include="Scenes\StartingScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,7 +185,6 @@
     <ClInclude Include="Renderer\Buffers\Renderbuffer.h" />
     <ClInclude Include="Renderer\Buffers\VertexArray.h" />
     <ClInclude Include="Renderer\Buffers\VertexBuffer.h" />
-    <ClInclude Include="Scenes\CompressionScene.h" />
     <ClInclude Include="Scenes\DeferredScene.h" />
     <ClInclude Include="Scenes\FrustumScene.h" />
     <ClInclude Include="Scenes\InstancingScene.h" />
@@ -222,8 +224,10 @@
     <None Include="Shaders\Deferred\blur_fragment.glsl" />
     <None Include="Shaders\Deferred\blur_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_instanced_fragment.glsl" />
+    <None Include="Shaders\Deferred\geometry_instanced_fragment_2.glsl" />
     <None Include="Shaders\Deferred\geometry_instanced_vertex.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment.glsl" />
+    <None Include="Shaders\Deferred\geometry_pass_fragment_2.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_fragment_simple.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_geometry.glsl" />
     <None Include="Shaders\Deferred\geometry_pass_vertex.glsl" />

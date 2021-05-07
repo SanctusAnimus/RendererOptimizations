@@ -133,7 +133,7 @@ void Renderer::Render(entt::registry& registry) {
 
 void Renderer::GatherImGui() {
     // frame counter
-    if (!ImGui::Begin("Renderer", &open))
+    if (!ImGui::Begin(U8_CAST("Візуалізатор"), &open))
     {
         ImGui::End();
         return;
@@ -152,7 +152,7 @@ void Renderer::GatherImGui() {
         }
     };
 
-    if (ImGui::CollapsingHeader("Textures", &open)) {
+    if (ImGui::CollapsingHeader(U8_CAST("Текстури"), &open)) {
         for (const auto& [name, tex] : m_Textures) {
             ImGui::Image((ImTextureID)(uint64_t)tex->id, ImVec2(48, 48), ImVec2(0, 0), ImVec2(1, 1));
             ImGui::SameLine();
@@ -167,7 +167,7 @@ void Renderer::GatherImGui() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Shaders", &open)) {
+    if (ImGui::CollapsingHeader(U8_CAST("Шейдери"), &open)) {
         for (const auto& [name, shader] : m_Shaders) {
             if (ImGui::TreeNode(name.c_str())) {
                 ImGui::Text("ID: %d", shader->ID);
@@ -176,7 +176,7 @@ void Renderer::GatherImGui() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Cameras", &open)) {
+    if (ImGui::CollapsingHeader(U8_CAST("Камери"), &open)) {
         std::string camera_name;
         for (const auto& [name, camera] : m_Cameras) {
             if (camera == m_CurrentCamera) {
@@ -192,14 +192,14 @@ void Renderer::GatherImGui() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Basic Entities", &open)) {
+    if (ImGui::CollapsingHeader(U8_CAST("Базові сутності"), &open)) {
         for (auto object : m_Objects) {
             object->UI_Description();
             ImGui::Separator();
         }
     }
 
-    if (ImGui::CollapsingHeader("Instanced Entities", &open)) {
+    if (ImGui::CollapsingHeader(U8_CAST("Груповані сутності"), &open)) {
         for (const auto& [name, instance_controller] : m_InstancedQuad) {
             instance_controller->UI_Description();
             ImGui::Separator();
@@ -210,20 +210,18 @@ void Renderer::GatherImGui() {
         }
     }
 
-    if (ImGui::CollapsingHeader("Renderer Settings", &open)) {
-        ImGui::DragFloat("Light Constant", &m_Settings.light_constant, 0.1f, 1.0f, 100.f);
-        ImGui::DragFloat("Light Linear", &m_Settings.light_linear, 0.05f, 0.01f, 100.f);
-        ImGui::DragFloat("Light Quadratic", &m_Settings.light_quadratic, 0.05f, 0.01f, 100.f);
-        ImGui::DragFloat("Light Intensity", &m_Settings.intensity, 0.2f, 0.2f, 20.f);
-        ImGui::DragFloat("Light Ambient", &m_Settings.ambient, 0.05f, 0.01f, 1.f);
-        ImGui::DragFloat("Light Spread", &m_Settings.light_spread, 1.f, 0.5f, 100.f);
-        ImGui::DragFloat("HDR Exposure", &m_Settings.exposure, 0.05f, 0.0f, 2.f);
-        ImGui::DragFloat("Bloom Threshold", &m_Settings.bloom_threshold, 0.05f, 0.0f, 2.f);
-        ImGui::DragInt("Bloom Passes", &m_Settings.bloom_radius, 2, 2, 30);
-        ImGui::DragFloat("Model Frustum Radius", &m_Settings.models_sphere_radius, 0.05f, 0.01f, 5.f);
-        ImGui::DragInt("Light Max", &m_Settings.current_light_limits, 1, 0, 256);
-        ImGui::Checkbox("Wireframe", &m_Settings.wireframe);
-        ImGui::Checkbox("Skybox", &m_Settings.skybox);
+    if (ImGui::CollapsingHeader(U8_CAST("Налаштування"), &open)) {
+        ImGui::DragFloat(U8_CAST("Константа"), &m_Settings.light_constant, 0.1f, 1.0f, 100.f);
+        ImGui::DragFloat(U8_CAST("Освіт. лінійний коеф."), &m_Settings.light_linear, 0.05f, 0.01f, 100.f);
+        ImGui::DragFloat(U8_CAST("Освіт. квадратичний коеф."), &m_Settings.light_quadratic, 0.05f, 0.01f, 100.f);
+        ImGui::DragFloat(U8_CAST("Освіт. інтенсивність"), &m_Settings.intensity, 0.2f, 0.2f, 20.f);
+        ImGui::DragFloat(U8_CAST("Освіт. окружне"), &m_Settings.ambient, 0.05f, 0.01f, 1.f);
+        ImGui::DragFloat(U8_CAST("Експозиція HDR"), &m_Settings.exposure, 0.05f, 0.0f, 2.f);
+        ImGui::DragFloat(U8_CAST("Поріг блуму"), &m_Settings.bloom_threshold, 0.05f, 0.0f, 2.f);
+        ImGui::DragInt(U8_CAST("Проходів блуму"), &m_Settings.bloom_radius, 2, 2, 30);
+        ImGui::DragFloat(U8_CAST("Радіус фрустума"), &m_Settings.models_sphere_radius, 0.05f, 0.01f, 5.f);
+        ImGui::DragInt(U8_CAST("Кількість джерел світла"), &m_Settings.current_light_limits, 1, 0, 256);
+        ImGui::Checkbox(U8_CAST("Режим каркасу"), &m_Settings.wireframe);
     }
 
     ImGui::End();
@@ -487,12 +485,14 @@ void Renderer::PerfCounter() {
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     if (corner != -1)
         window_flags |= ImGuiWindowFlags_NoMove;
-    if (ImGui::Begin("Renderer: Frame Stats", &open, window_flags))
+    if (ImGui::Begin(U8_CAST("Швидкість виконання"), &open, window_flags))
     {
-        ImGui::Text("Frame Time: %.2f ms", m_FrameTime * 1000.0);
-        ImGui::Text("FPS: %.1f", 1.0 / m_FrameTime);
-        ImGui::Text("Visible Light: %d", m_VisibleLights);
-        ImGui::Text("Visible Models: %d", m_VisibleModels);
+        ImGui::Text(U8_CAST("Час на кадр: %.2f мс"), m_FrameTime * 1000.0);
+        ImGui::Text(U8_CAST("FPS: %.1f"), 1.0 / m_FrameTime);
+        if(m_VisibleLights > 0)
+            ImGui::Text(U8_CAST("Видимі джерела світла: %d"), m_VisibleLights);
+        if(m_VisibleModels > 0)
+            ImGui::Text(U8_CAST("Видимі об'єкти: %d"), m_VisibleModels);
     }
     ImGui::End();
 }

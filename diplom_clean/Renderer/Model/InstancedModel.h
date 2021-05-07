@@ -27,7 +27,9 @@ public:
     void SetHasRenderColor(const bool& flag) {
         m_HasRenderColor = flag;
     }
+    static bool _enable_frustum;
 private:
+
     // model data
     std::shared_ptr<Shader> m_Shader;
     std::vector<std::shared_ptr<InstancedMesh>> meshes;

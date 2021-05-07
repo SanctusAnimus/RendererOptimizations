@@ -4,8 +4,10 @@
 #include <GLFW/glfw3.h>
 
 
+bool InstancedModel::_enable_frustum = true;
+
 bool IsVisible(glm::vec4 worldspace, float radius) {
-    return true;
+    // return true;
     return abs(worldspace.x) < worldspace.w + radius &&
         abs(worldspace.y) < worldspace.w + radius &&
         radius < worldspace.z &&
@@ -47,12 +49,13 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
 
     if (m_RenderLimit >= (int)instance_traits.size()) m_RenderLimit = (int)instance_traits.size();
 
+    std::vector<InstanceTraits>& ref = instance_traits;
     std::vector<InstanceTraits> visible_instances;
     size_t index = 0;
     for (const auto& trait : instance_traits) {
         if (index++ >= m_RenderLimit) break;
         glm::vec4 worldspace = mvp * glm::vec4(trait.transform[3]);
-        if (IsVisible(worldspace, radius)) {
+        if (!this->_enable_frustum || IsVisible(worldspace, radius)) {
             visible_instances.push_back(trait);
         }
     }
