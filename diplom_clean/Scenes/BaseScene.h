@@ -44,7 +44,7 @@ protected:
 	float spread = 20.f;
 	const int LIGHT_COUNT_MAX = 128;
 
-	int m_ModelsStride = 13;
+	int m_ModelsStride = 26;
 };
 
 #endif // !BASESCENE_CLASS_DECL

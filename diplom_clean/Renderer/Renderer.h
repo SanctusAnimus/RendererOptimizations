@@ -32,6 +32,7 @@ namespace Rendering {
 		float bloom_threshold = 1.0f;
 		int bloom_radius = 10;
 		int current_light_limits = 16;
+		int current_model_limits = 16;
 		float exposure = 1.0f;
 
 		bool wireframe = false;

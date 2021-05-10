@@ -22,8 +22,8 @@ void Application::Init() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    // glfwWindowHint(GLFW_SAMPLES, 4);
+    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -155,7 +155,7 @@ void Application::Run() {
         };
         static int item_current_idx = 0;
         static std::string current_key = U8_CAST("1. Базова сцена");
-        if (ImGui::BeginCombo("combo 1", current_key.c_str())) {
+        if (ImGui::BeginCombo(U8_CAST("Обрана сцена"), current_key.c_str())) {
             int n = 0;
             for (auto& [key, callback] : options) {
                 const bool is_selected = (item_current_idx == n);

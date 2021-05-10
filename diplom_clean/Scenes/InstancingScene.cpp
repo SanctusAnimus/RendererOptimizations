@@ -56,7 +56,7 @@ void InstancingScene::Setup() {
     auto quad = renderer->NewQuad("brickwall", "g_pass");
     quad->SetNormalMap("brickwall_normal");
     quad->SetRotation(-90, { 1.f, 0.f, 0.f });
-    quad->SetScale({ 20.f, 20.f, 20.0 });
+    quad->SetScale({ 40.f, 40.f, 40.f });
     quad->SetTransform({ 0.f, -1.f, 0.f });
     quad->SetUV(
         { 0.0f, 10.0f },
@@ -71,8 +71,11 @@ void InstancingScene::Setup() {
     for (int i = 0; i < m_ModelsStride; i++) {
         for (int j = 0; j < m_ModelsStride; j++) {
             auto entity = AddEntity();
-            m_Registry.emplace<TransformComponent>(entity,
-                glm::vec3{ i * 5.f - m_ModelsStride * 2.5f, 1.f, j * 5.f - m_ModelsStride * 2.5f }, glm::vec3{ 0.7f , 0.7f , 0.7f });
+            m_Registry.emplace<TransformComponent>(
+                entity,
+                glm::vec3{ i * 3.f - m_ModelsStride * 1.5f, 1.f, j * 2.f - m_ModelsStride * 1.f }, 
+                glm::vec3{ 0.7f , 0.7f , 0.7f }
+            );
             m_Registry.emplace<InstancedModelComponent>(entity, "Models/backpack/backpack.obj", "instanced_g_pass");
         }
     }

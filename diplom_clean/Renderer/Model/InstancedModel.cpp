@@ -47,8 +47,8 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
 
     glm::mat4 mvp = projection * view * glm::mat4(1.f);
 
-    if (m_RenderLimit >= (int)instance_traits.size()) m_RenderLimit = (int)instance_traits.size();
-
+    // if (m_RenderLimit >= (int)instance_traits.size()) m_RenderLimit = (int)instance_traits.size();
+    m_RenderLimit = renderer->m_Settings.current_model_limits;
     std::vector<InstanceTraits>& ref = instance_traits;
     std::vector<InstanceTraits> visible_instances;
     size_t index = 0;

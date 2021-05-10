@@ -59,7 +59,7 @@ void RawScene::Setup() {
     auto quad = renderer->NewQuad("brickwall", "g_pass");
     quad->SetNormalMap("brickwall_normal");
     quad->SetRotation(-90, { 1.f, 0.f, 0.f });
-    quad->SetScale({ 20.f, 20.f, 20.0 });
+    quad->SetScale({ 40.f, 40.f, 40.f });
     quad->SetTransform({ 0.f, -1.f, 0.f });
     quad->SetUV(
         { 0.0f, 10.0f },
@@ -71,7 +71,7 @@ void RawScene::Setup() {
     for (int i = 0; i < m_ModelsStride; i++) {
         for (int j = 0; j < m_ModelsStride; j++) {
             glm::mat4 model(1.f);
-            model = glm::translate(model, { i * 5.f - m_ModelsStride * 2.5f, 1.f, j * 5.f - m_ModelsStride * 2.5f});
+            model = glm::translate(model, { i * 3.f - m_ModelsStride * 1.5f, 1.f, j * 2.f - m_ModelsStride * 1.f});
             model = glm::scale(model, { 0.7f , 0.7f , 0.7f });
             positions.push_back(model);
         }
@@ -214,8 +214,9 @@ void RawScene::Render() {
 
         geometry_pass_shader->use();
         geometry_pass_shader->setInt("has_render_color", 1);
-
+        
         for (const auto& _light_pos : temporary_light_data) {
+            
             glm::mat4 model(1.f);
             model = glm::translate(model, glm::make_vec3(_light_pos.Position));
             model = glm::scale(model, { 0.055f , 0.055f , 0.055f });
@@ -224,8 +225,10 @@ void RawScene::Render() {
             m_CubeModel.Render(geometry_pass_shader);
         }
 
+        size_t model_index = 0;
         geometry_pass_shader->setInt("has_render_color", 0);
         for (const auto& _backpack_pos : positions) {
+            if (model_index++ > renderer->m_Settings.current_model_limits) break;
             geometry_pass_shader->setMat4("model", _backpack_pos);
             m_Backpack.Render(geometry_pass_shader);
         }

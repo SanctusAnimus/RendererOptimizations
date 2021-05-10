@@ -221,6 +221,7 @@ void Renderer::GatherImGui() {
         ImGui::DragInt(U8_CAST("Проходів блуму"), &m_Settings.bloom_radius, 2, 2, 30);
         ImGui::DragFloat(U8_CAST("Радіус фрустума"), &m_Settings.models_sphere_radius, 0.05f, 0.01f, 5.f);
         ImGui::DragInt(U8_CAST("Кількість джерел світла"), &m_Settings.current_light_limits, 1, 0, 256);
+        ImGui::DragInt(U8_CAST("Кількість моделей"), &m_Settings.current_model_limits, 1, 0, 512);
         ImGui::Checkbox(U8_CAST("Режим каркасу"), &m_Settings.wireframe);
     }
 
