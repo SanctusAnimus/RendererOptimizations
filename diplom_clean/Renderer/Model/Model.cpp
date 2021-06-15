@@ -136,7 +136,7 @@ std::vector<std::shared_ptr<Texture>> Model::loadMaterialTextures(aiMaterial* ma
         std::shared_ptr<Texture> texture = renderer->GetTexture(path);
         if (texture == nullptr) {
             texture = renderer->NewTexture(
-                (directory + '/' + path).c_str(), path, typeName
+                (directory + '/' + path).c_str(), path, typeName, renderer->m_Settings._compress_textures
             );
             std::cout << "Loaded texture " << typeName << " with path " << texture->path << std::endl;
         }

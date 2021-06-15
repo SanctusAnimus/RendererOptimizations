@@ -158,10 +158,10 @@ void Renderer::GatherImGui() {
             ImGui::SameLine();
 
             ImGui::BeginGroup();
-            ImGui::Text("Texture: <%d> %s", tex->id, name.c_str());
-            ImGui::Text("Type: %s", get_texture_type_repr(tex->gl_type));
-            ImGui::Text("Usage: %s", tex->type.c_str());
-            ImGui::Text("Path: %s", tex->path.c_str());
+            ImGui::Text(U8_CAST("Назва: <%d> %s"), tex->id, name.c_str());
+            ImGui::Text(U8_CAST("Тип: %s"), get_texture_type_repr(tex->gl_type));
+            ImGui::Text(U8_CAST("Використання: %s"), tex->type.c_str());
+            ImGui::Text(U8_CAST("Шлях: %s"), tex->path.c_str());
             ImGui::EndGroup();
             ImGui::Separator();
         }
@@ -180,7 +180,7 @@ void Renderer::GatherImGui() {
         std::string camera_name;
         for (const auto& [name, camera] : m_Cameras) {
             if (camera == m_CurrentCamera) {
-                camera_name = "[SELECTED]" + name;
+                camera_name = U8_CAST("[ОБРАНА]") + name;
             }
             else {
                 camera_name = name;
@@ -217,7 +217,7 @@ void Renderer::GatherImGui() {
         ImGui::DragFloat(U8_CAST("Освіт. інтенсивність"), &m_Settings.intensity, 0.2f, 0.2f, 20.f);
         ImGui::DragFloat(U8_CAST("Освіт. окружне"), &m_Settings.ambient, 0.05f, 0.01f, 1.f);
         ImGui::DragFloat(U8_CAST("Експозиція HDR"), &m_Settings.exposure, 0.05f, 0.0f, 2.f);
-        ImGui::DragFloat(U8_CAST("Поріг блуму"), &m_Settings.bloom_threshold, 0.05f, 0.0f, 2.f);
+        ImGui::DragFloat(U8_CAST("Поріг блуму"), &m_Settings.bloom_threshold, 0.05f, 0.0f, 150.f);
         ImGui::DragInt(U8_CAST("Проходів блуму"), &m_Settings.bloom_radius, 2, 2, 30);
         ImGui::DragFloat(U8_CAST("Радіус фрустума"), &m_Settings.models_sphere_radius, 0.05f, 0.01f, 5.f);
         ImGui::DragInt(U8_CAST("Кількість джерел світла"), &m_Settings.current_light_limits, 1, 0, 256);

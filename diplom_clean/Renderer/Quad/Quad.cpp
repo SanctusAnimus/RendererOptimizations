@@ -61,11 +61,11 @@ void Quad::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat4 projecti
 
 void Quad::UI_Description() {
     ImGui::PushID(m_VAO);
-    ImGui::TextUnformatted("Quad");
-    ImGui::DragFloat3("Translation", &m_Transform.x, 0.5f, -100.f, 100.f);
-    ImGui::InputFloat3("Scale", &m_Scale.x, 1);
-    ImGui::InputFloat3("Rotation M", &m_Rotation.x, 1);
-    ImGui::InputFloat("Radians", &m_RotationRadians, 0.0, 1.f, 1);
+    ImGui::TextUnformatted(U8_CAST("Квад"));
+    ImGui::DragFloat3(U8_CAST("Координати"), &m_Transform.x, 0.5f, -100.f, 100.f);
+    ImGui::InputFloat3(U8_CAST("Масштаб"), &m_Scale.x, 1);
+    ImGui::InputFloat3(U8_CAST("Вектор повороту"), &m_Rotation.x, 1);
+    ImGui::InputFloat(U8_CAST("Кут (радіани)"), &m_RotationRadians, 0.0, 1.f, 1);
     ImGui::PopID();
 }
 

@@ -223,20 +223,20 @@ void InstancedQuad::SetHeightMap(std::string tex_name) {
 
 
 void InstancedQuad::UI_Description() {
-    ImGui::TextUnformatted("Type: Quad");
-    ImGui::Text("Controlled entities: %d", models.size());
-    ImGui::Text("Diffuse: %s", m_Texture->path.c_str());
+    ImGui::TextUnformatted(U8_CAST("Тип: квад з дублюванням"));
+    ImGui::Text(U8_CAST("Контрольовано: %d"), models.size());
+    ImGui::Text(U8_CAST("Текстура кольору: %s"), m_Texture->path.c_str());
     if (m_NormalMap != nullptr) {
-        ImGui::Text("Normal: %s", m_NormalMap->path.c_str());
+        ImGui::Text(U8_CAST("Карта нормалей: %s"), m_NormalMap->path.c_str());
     }
     if (m_SpecularMap != nullptr) {
-        ImGui::Text("Specular: %s", m_SpecularMap->path.c_str());
+        ImGui::Text(U8_CAST("Карта відбиття: %s"), m_SpecularMap->path.c_str());
     }    
     if (m_HeightMap != nullptr) {
-        ImGui::Text("Height: %s", m_HeightMap->path.c_str());
+        ImGui::Text(U8_CAST("Карта висоти: %s"), m_HeightMap->path.c_str());
     }
 
-    if (ImGui::Button("Add"))
+    if (ImGui::Button(U8_CAST("Додати")))
         ImGui::OpenPopup("new_instanced_entity");
 
     if (ImGui::BeginPopup("new_instanced_entity")) {
@@ -245,14 +245,22 @@ void InstancedQuad::UI_Description() {
         static glm::vec3 scale(1.f);
         static float degrees = 0;
 
-        ImGui::TextUnformatted("Create new instance of Quad");
-        // models and such;
-        ImGui::DragFloat3("Translate", &translate.x, 0.5);
-        ImGui::DragFloat3("Scale", &scale.x, 0.5);
-        ImGui::InputFloat3("Rotate Vector", &rotate_vec.x);
-        ImGui::InputFloat("Degrees", &degrees);
+        /*
+            ImGui::TextUnformatted(U8_CAST("Квад"));
+    ImGui::DragFloat3(U8_CAST("Координати"), &m_Transform.x, 0.5f, -100.f, 100.f);
+    ImGui::InputFloat3(U8_CAST("Масштаб"), &m_Scale.x, 1);
+    ImGui::InputFloat3(U8_CAST("Вектор повороту"), &m_Rotation.x, 1);
+    ImGui::InputFloat(U8_CAST("Кут (радіани)"), &m_RotationRadians, 0.0, 1.f, 1);
+        */
 
-        if (ImGui::Button("Create")) {
+        ImGui::TextUnformatted(U8_CAST("Новий дублбований квад"));
+        // models and such;
+        ImGui::DragFloat3(U8_CAST("Координати"), &translate.x, 0.5);
+        ImGui::DragFloat3(U8_CAST("Масштаб"), &scale.x, 0.5);
+        ImGui::InputFloat3(U8_CAST("Вектор повороту"), &rotate_vec.x);
+        ImGui::InputFloat(U8_CAST("Кут (градуси)"), &degrees);
+
+        if (ImGui::Button(U8_CAST("Створити"))) {
             glm::mat4 qmodel = glm::mat4(1.0f);
             qmodel = glm::translate(qmodel, translate);
             qmodel = glm::rotate(qmodel, glm::radians(degrees), rotate_vec);
@@ -261,7 +269,7 @@ void InstancedQuad::UI_Description() {
         }
         ImGui::SetItemDefaultFocus();
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) {
+        if (ImGui::Button(U8_CAST("Закрити"))) {
             ImGui::CloseCurrentPopup();
         }
 

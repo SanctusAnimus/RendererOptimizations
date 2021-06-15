@@ -80,9 +80,9 @@ namespace Camera {
 
 	void ArcballCamera::UI_Description() {
 		static bool ac_changed = false;
-		ImGui::TextUnformatted("Type: Arcball");
-		if (ImGui::SliderFloat3("Position", &m_Position.x, -100.f, 100.f)) ac_changed = true;
-		if (ImGui::DragFloat("Zoom:", &m_Zoom, 0.5, 0.5, 100.f)) ac_changed = true;
+		ImGui::TextUnformatted(U8_CAST("Тип: дугова"));
+		if (ImGui::SliderFloat3(U8_CAST("Координати"), &m_Position.x, -100.f, 100.f)) ac_changed = true;
+		if (ImGui::DragFloat(U8_CAST("Масштабування"), &m_Zoom, 0.5, 0.5, 100.f)) ac_changed = true;
 		if (ac_changed) Update();
 	}
 }

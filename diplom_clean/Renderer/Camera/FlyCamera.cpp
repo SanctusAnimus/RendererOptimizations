@@ -1,6 +1,6 @@
 #include <iostream>
 #include <imgui/imgui.h>
-
+#include "../Renderer.h"
 #include "FlyCamera.h"
 
 namespace Camera {
@@ -85,8 +85,8 @@ namespace Camera {
 
 	void FlyCamera::UI_Description() 
 	{
-		ImGui::TextUnformatted("Type: Flying");
-		ImGui::SliderFloat3("Position", &m_Position.x, -100.f, 100.f);
-		ImGui::DragFloat("Zoom:", &m_Zoom, 0.5, 0.5, 100.f);
+		ImGui::TextUnformatted(U8_CAST("Тип: вільна"));
+		ImGui::SliderFloat3(U8_CAST("Координати"), &m_Position.x, -100.f, 100.f);
+		ImGui::DragFloat(U8_CAST("Масштабування"), &m_Zoom, 0.5, 0.5, 100.f);
 	}
 }

@@ -2,7 +2,7 @@
 
 int main()
 {
-    Application app;
+    OptimizationsApp app;
     app.Init();
     return 0;
 }

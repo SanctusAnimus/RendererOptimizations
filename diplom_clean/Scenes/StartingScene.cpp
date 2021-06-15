@@ -89,7 +89,7 @@ void StartingScene::Setup() {
             auto entity = AddEntity();
             m_Registry.emplace<TransformComponent>(
                 entity,
-                glm::vec3{ i * 3.f - m_ModelsStride * 1.5f, 1.f, j * 2.f - m_ModelsStride * 1.f },
+                glm::vec3{ i * 5.f - m_ModelsStride * 2.5f, 1.f, j * 5.f - m_ModelsStride * 2.5f },
                 glm::vec3{ 0.7f , 0.7f , 0.7f }
             );
             m_Registry.emplace<InstancedModelComponent>(entity, "Models/backpack/backpack.obj", "instanced_g_pass");

@@ -48,7 +48,7 @@ void InstancedModel::Render(std::shared_ptr<Camera::BaseCamera> camera, glm::mat
     glm::mat4 mvp = projection * view * glm::mat4(1.f);
 
     // if (m_RenderLimit >= (int)instance_traits.size()) m_RenderLimit = (int)instance_traits.size();
-    m_RenderLimit = renderer->m_Settings.current_model_limits;
+    m_RenderLimit = m_ModelName == "backpack.obj" ? renderer->m_Settings.current_model_limits : 999;
     std::vector<InstanceTraits>& ref = instance_traits;
     std::vector<InstanceTraits> visible_instances;
     size_t index = 0;
@@ -130,11 +130,11 @@ void InstancedModel::processNode(aiNode* node, const aiScene* scene)
 void InstancedModel::UI_Description() {
     auto instance_traits_size = static_cast<int>(instance_traits.size());
     ImGui::PushID(m_ModelName.c_str());
-    ImGui::TextUnformatted("Type: Model");
-    ImGui::Text("Name: %s", m_ModelName.c_str());
-    ImGui::Checkbox("Colored", &m_HasRenderColor);
-    ImGui::SliderInt("Render Limit", &m_RenderLimit, 0, instance_traits_size);
-    ImGui::Text("Controlled entities: %d", instance_traits_size);
+    ImGui::TextUnformatted(U8_CAST("Тип: модель з дублюванням геометрії"));
+    ImGui::Text(U8_CAST("Назва: %s"), m_ModelName.c_str());
+    ImGui::Checkbox(U8_CAST("Візуалізація одним кольором"), &m_HasRenderColor);
+    ImGui::SliderInt(U8_CAST("Максимальна кількість"), &m_RenderLimit, 0, instance_traits_size);
+    ImGui::Text(U8_CAST("Контрольовано: %d"), instance_traits_size);
     ImGui::PopID();
 }
 

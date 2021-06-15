@@ -7,10 +7,10 @@
 #include "Scenes/BaseScene.h"
 #include "Renderer/Renderer.h"
 
-class Application
+class OptimizationsApp
 {
 public:
-	Application();
+	OptimizationsApp();
 
 	void Init();
 	void SetupCallbacks();
@@ -41,7 +41,7 @@ private:
 };
 
 struct WindowData {
-	Application* app;
+	OptimizationsApp* app;
 };
 #endif // !APPLICATION_CLASS_DECL
 

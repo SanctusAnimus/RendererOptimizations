@@ -42,9 +42,9 @@ protected:
 	entt::registry m_Registry;
 
 	float spread = 20.f;
-	const int LIGHT_COUNT_MAX = 128;
+	const int LIGHT_COUNT_MAX = 32;
 
-	int m_ModelsStride = 26;
+	int m_ModelsStride = 15;
 };
 
 #endif // !BASESCENE_CLASS_DECL
